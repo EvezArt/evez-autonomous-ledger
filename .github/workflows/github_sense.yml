@@ -2,12 +2,12 @@ name: GitHub Ecosystem Sense (20-min)
 
 on:
   schedule:
-    - cron: '*/20 * * * *'
+    - cron: '15 */6 * * *'
   workflow_dispatch:
 
 jobs:
   gh-sense:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
     permissions:
       contents: write
       issues: write

@@ -2,12 +2,12 @@ name: Memory Consolidation (3-hour)
 
 on:
   schedule:
-    - cron: '0 */3 * * *'
+    - cron: '0 */12 * * *'
   workflow_dispatch:
 
 jobs:
   consolidate:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
     permissions:
       contents: write
     steps:

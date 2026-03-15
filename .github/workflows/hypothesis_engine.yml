@@ -7,7 +7,7 @@ on:
 
 jobs:
   hypothesize:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
     permissions:
       contents: write
       issues: write
