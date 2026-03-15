@@ -1,8 +1,6 @@
 name: Reconciler -> pulse.json (15-min)
 
 on:
-  schedule:
-    - cron: '0 10 * * *'
   workflow_dispatch:
 
 jobs:

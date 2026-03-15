@@ -1,8 +1,6 @@
 name: Autonomous Intelligence Core
 
 on:
-  schedule:
-    - cron: '0 */12 * * *'  # Every 12 hours (budget-friendly)
   workflow_dispatch:
 
 permissions:

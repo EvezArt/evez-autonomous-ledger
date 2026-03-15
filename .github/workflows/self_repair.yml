@@ -1,8 +1,6 @@
 name: Self-Repair Daemon (10-min)
 
 on:
-  schedule:
-    - cron: '30 */6 * * *'
   workflow_dispatch:
 
 jobs:

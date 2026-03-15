@@ -1,8 +1,6 @@
 name: Cockpit Bridge (15-min)
 
 on:
-  schedule:
-    - cron: '0 9 * * *'
   workflow_dispatch:
 
 jobs:

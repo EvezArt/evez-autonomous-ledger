@@ -1,8 +1,6 @@
 name: Nightly Learn Loop
 
 on:
-  schedule:
-    - cron: '0 10 * * *'  # 02:00 PT = 10:00 UTC
   workflow_dispatch:
 
 jobs:
