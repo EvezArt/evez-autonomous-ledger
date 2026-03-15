@@ -4,7 +4,12 @@ EVEZ Autonomous Ledger — 24/7 Heartbeat Cycle
 Observe → Orient → Decide → Act (OODA)
 Writes every decision back to the ledger as a hash-chained record.
 """
-import os, json, hashlib, datetime, requests
+import os, json, hashlib, datetime, sys
+try:
+    import requests
+except ImportError:
+    print("ERROR: 'requests' module not available. Exiting gracefully.")
+    sys.exit(0)
 
 GH_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 OWNER = os.environ.get("REPO_OWNER", "EvezArt")
@@ -38,20 +43,26 @@ def chain_hash(prev_hash: str, payload: dict) -> str:
 
 def get_open_issues(repo: str) -> list:
     url = f"https://api.github.com/repos/{OWNER}/{repo}/issues?state=open&per_page=20"
-    r = requests.get(url, headers=HEADERS)
-    if r.status_code == 200:
-        return [i for i in r.json() if "pull_request" not in i]
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=15)
+        if r.status_code == 200:
+            return [i for i in r.json() if "pull_request" not in i]
+    except Exception as e:
+        print(f"  ⚠ get_open_issues({repo}) failed: {e}")
     return []
 
 
 def get_last_ledger_hash() -> str:
     """Read genesis/last hash from spine/genesis.json"""
     url = f"https://api.github.com/repos/{OWNER}/evez-autonomous-ledger/contents/spine/genesis.json"
-    r = requests.get(url, headers=HEADERS)
-    if r.status_code == 200:
-        import base64
-        content = json.loads(base64.b64decode(r.json()["content"]).decode())
-        return content.get("genesis_hash", "GENESIS")
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=15)
+        if r.status_code == 200:
+            import base64
+            content = json.loads(base64.b64decode(r.json()["content"]).decode())
+            return content.get("genesis_hash", "GENESIS")
+    except Exception as e:
+        print(f"  ⚠ get_last_ledger_hash failed: {e}")
     return "GENESIS"
 
 
@@ -65,7 +76,10 @@ def write_ledger_entry(entry: dict, filename: str):
         "message": f"🔗 ledger: {entry.get('type','event')} @ {entry.get('timestamp','')}",
         "content": encoded,
     }
-    requests.put(url, headers=HEADERS, json=payload)
+    try:
+        requests.put(url, headers=HEADERS, json=payload, timeout=15)
+    except Exception as e:
+        print(f"  ⚠ write_ledger_entry({filename}) failed: {e}")
 
 
 def classify_issue(title: str, body: str) -> str:
@@ -142,6 +156,11 @@ def publish_heartbeat(plans: list):
     """Publish cycle summary to Ably evez-ops channel."""
     if not ABLY_KEY:
         return
+    try:
+        key_id, key_secret = ABLY_KEY.split(":")
+    except ValueError:
+        print("  ⚠ ABLY_KEY format invalid (expected 'id:secret'), skipping heartbeat")
+        return
     channel = "evez-ops"
     url = f"https://rest.ably.io/channels/{channel}/messages"
     payload = {
@@ -154,34 +173,48 @@ def publish_heartbeat(plans: list):
                         "repo": p["repo"]} for p in plans],
         })
     }
-    key_id, key_secret = ABLY_KEY.split(":")
-    requests.post(url, json=payload, auth=(key_id, key_secret))
-    print(f"  📡 Ably broadcast: {len(plans)} plans → evez-ops")
+    try:
+        requests.post(url, json=payload, auth=(key_id, key_secret), timeout=15)
+        print(f"  📡 Ably broadcast: {len(plans)} plans → evez-ops")
+    except Exception as e:
+        print(f"  ⚠ publish_heartbeat failed: {e}")
 
 
 def main():
     print(f"\n🧠 EVEZ Autonomous Cycle — {now_iso()}")
-    print("  Phase 1: OBSERVE")
-    state = observe()
-    total = sum(len(v) for v in state.values())
-    print(f"  → {total} open issues across {len(REPOS)} repos")
 
-    print("  Phase 2: ORIENT")
-    work_queue = orient(state)
-    print(f"  → {len(work_queue)} items prioritized")
+    if not GH_TOKEN:
+        print("  ⚠ GITHUB_TOKEN not set — running in degraded mode (API calls will likely fail)")
 
-    print("  Phase 3: DECIDE")
-    plans = decide(work_queue)
-    print(f"  → {len(plans)} plans generated")
+    try:
+        print("  Phase 1: OBSERVE")
+        state = observe()
+        total = sum(len(v) for v in state.values())
+        print(f"  → {total} open issues across {len(REPOS)} repos")
 
-    print("  Phase 4: ACT (ledger + gate)")
-    prev_hash = get_last_ledger_hash()
-    final_hash = act(plans, prev_hash)
-    print(f"  → Chain tip: {final_hash[:16]}")
+        print("  Phase 2: ORIENT")
+        work_queue = orient(state)
+        print(f"  → {len(work_queue)} items prioritized")
 
-    publish_heartbeat(plans)
-    print("  ✅ Cycle complete.\n")
+        print("  Phase 3: DECIDE")
+        plans = decide(work_queue)
+        print(f"  → {len(plans)} plans generated")
+
+        print("  Phase 4: ACT (ledger + gate)")
+        prev_hash = get_last_ledger_hash()
+        final_hash = act(plans, prev_hash)
+        print(f"  → Chain tip: {final_hash[:16]}")
+
+        publish_heartbeat(plans)
+        print("  ✅ Cycle complete.\n")
+    except Exception as e:
+        print(f"  ❌ Cycle failed: {e}")
+        print("  ⚠ Exiting gracefully — will retry next scheduled run.\n")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"FATAL (caught at top level): {e}")
+        sys.exit(0)

@@ -27,19 +27,26 @@ def now_iso():
 
 
 def load_all_decisions():
-    url = f"https://api.github.com/repos/{OWNER}/evez-autonomous-ledger/contents/DECISIONS"
-    r = requests.get(url, headers=HEADERS)
-    if r.status_code != 200:
+    try:
+        url = f"https://api.github.com/repos/{OWNER}/evez-autonomous-ledger/contents/DECISIONS"
+        r = requests.get(url, headers=HEADERS, timeout=15)
+        if r.status_code != 200:
+            return []
+        files = r.json()
+    except Exception as e:
+        print(f"  [WARN] load_all_decisions outer request failed: {e}")
         return []
-    files = r.json()
     records = []
     for f in files[:60]:  # cap at 60 to avoid rate limits
-        fr = requests.get(f["url"], headers=HEADERS)
-        if fr.status_code == 200:
-            try:
-                records.append(json.loads(base64.b64decode(fr.json()["content"]).decode()))
-            except Exception:
-                pass
+        try:
+            fr = requests.get(f["url"], headers=HEADERS, timeout=15)
+            if fr.status_code == 200:
+                try:
+                    records.append(json.loads(base64.b64decode(fr.json()["content"]).decode()))
+                except Exception:
+                    pass
+        except Exception as e:
+            print(f"  [WARN] load_all_decisions file fetch failed: {e}")
     return records
 
 
@@ -103,9 +110,12 @@ def write_memory_state(state):
     # Overwrite the canonical MEMORY_STATE file
     existing_sha = ""
     url = f"https://api.github.com/repos/{OWNER}/evez-autonomous-ledger/contents/MEMORY_STATE.json"
-    r = requests.get(url, headers=HEADERS)
-    if r.status_code == 200:
-        existing_sha = r.json().get("sha", "")
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=15)
+        if r.status_code == 200:
+            existing_sha = r.json().get("sha", "")
+    except Exception as e:
+        print(f"  [WARN] write_memory_state GET failed: {e}")
 
     payload = {
         "message": f"🧬 MEMORY_STATE consolidated @ {state['timestamp']}",
@@ -114,19 +124,29 @@ def write_memory_state(state):
     if existing_sha:
         payload["sha"] = existing_sha
 
-    requests.put(url, headers=HEADERS, json=payload)
+    try:
+        requests.put(url, headers=HEADERS, json=payload, timeout=15)
+    except Exception as e:
+        print(f"  [WARN] write_memory_state PUT failed: {e}")
 
 
 def main():
-    print(f"\n🧬 EVEZ Memory Consolidator — {now_iso()}")
-    records = load_all_decisions()
-    print(f"  Loaded {len(records)} decision records")
-    state = consolidate(records)
-    write_memory_state(state)
-    print(f"  ✅ MEMORY_STATE.json updated. Hash: {state['memory_hash']}")
-    print(f"  Event types: {state['event_type_distribution']}")
-    print(f"  Top keywords: {list(state['top_web_keywords'].keys())[:8]}")
+    try:
+        print(f"\n🧬 EVEZ Memory Consolidator — {now_iso()}")
+        records = load_all_decisions()
+        print(f"  Loaded {len(records)} decision records")
+        state = consolidate(records)
+        write_memory_state(state)
+        print(f"  ✅ MEMORY_STATE.json updated. Hash: {state['memory_hash']}")
+        print(f"  Event types: {state['event_type_distribution']}")
+        print(f"  Top keywords: {list(state['top_web_keywords'].keys())[:8]}")
+    except Exception as e:
+        print(f"  [ERROR] main() failed: {e}")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"[FATAL] consolidator crashed: {e}")
+        exit(0)

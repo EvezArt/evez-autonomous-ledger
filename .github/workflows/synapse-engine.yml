@@ -9,6 +9,8 @@ jobs:
   synapse-audit:
     runs-on: ubuntu-latest
     name: 'Synapse Engine -- 6h ecosystem audit'
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,44 +21,20 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: |
-          pip install requests pygithub pyyaml
+        run: pip install requests
 
       - name: Run ecosystem audit
-        env: 
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          echo "== SYNAPSE ENGINE -- $(date -u) =="
-          echo "Auditing GitHub repositories..."
-          curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/users/EvezArt/repos?per_page=100&sort=pushed" \
-            | python3 -c "
-          import json,sys
-          repos = json.load(sys.stdin)
-          print(f'GitHub: {len(repos)} repos audited')
-          for r in repos[:5]:
-              print(f'  {r[\"name\"]} -- pushed: {r[\"pushed_at\"]}')
-          "
-          echo "Auditing Vercel deployments..."
-          curl -s -H "Authorization: Bearer $VERCEL_TOKEN" \
-            "https://api.vercel.com/v9/deployments?limit=10" \
-            | python3 -c "
-          import json,sys
-          d = json.load(sys.stdin)
-          depls = d.get('deployments',[])
-          print(f'Vercel: {len(depls)} deployments checked')
-          for dp in depls[:5]:
-              print(f'  {dp.get(\"name\")} -- {dp.get(\"state\")}')
-          "
-          echo "Synapse Engine complete."
+        run: python agents/synapse_audit.py
 
-      - name: Update ledger timestamp
+      - name: Commit and push audit reports
         run: |
-          echo "Last Synapse Engine run: $(date -u)" > AUDIT_REPORTS/last_run.txt
           git config user.email "synapse@evez.auto"
           git config user.name "SynapseEngine"
           mkdir -p AUDIT_REPORTS
           git add AUDIT_REPORTS/
           git diff --staged --quiet || git commit -m "audit: Synapse Engine run -- $(date -u)"
+          git push

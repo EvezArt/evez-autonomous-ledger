@@ -25,21 +25,25 @@ def now_iso():
 
 
 def get_recent_decisions(limit=20):
-    url = f"https://api.github.com/repos/{OWNER}/evez-autonomous-ledger/contents/DECISIONS"
-    r = requests.get(url, headers=HEADERS)
-    if r.status_code != 200:
+    try:
+        url = f"https://api.github.com/repos/{OWNER}/evez-autonomous-ledger/contents/DECISIONS"
+        r = requests.get(url, headers=HEADERS, timeout=15)
+        if r.status_code != 200:
+            return []
+        files = sorted(r.json(), key=lambda x: x["name"], reverse=True)[:limit]
+        records = []
+        for f in files:
+            fr = requests.get(f["url"], headers=HEADERS, timeout=15)
+            if fr.status_code == 200:
+                try:
+                    content = json.loads(base64.b64decode(fr.json()["content"]).decode())
+                    records.append(content)
+                except Exception:
+                    pass
+        return records
+    except Exception as e:
+        print(f"  ⚠️ get_recent_decisions error: {e}")
         return []
-    files = sorted(r.json(), key=lambda x: x["name"], reverse=True)[:limit]
-    records = []
-    for f in files:
-        fr = requests.get(f["url"], headers=HEADERS)
-        if fr.status_code == 200:
-            try:
-                content = json.loads(base64.b64decode(fr.json()["content"]).decode())
-                records.append(content)
-            except Exception:
-                pass
-    return records
 
 
 def call_claude(prompt):
@@ -60,8 +64,12 @@ def call_claude(prompt):
             "content-type": "application/json",
         }
     )
-    with urllib.request.urlopen(req) as resp:
-        return json.loads(resp.read())["content"][0]["text"]
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            return json.loads(resp.read())["content"][0]["text"]
+    except Exception as e:
+        print(f"  ⚠️ call_claude error: {e}")
+        return None
 
 
 def synthesize(records):
@@ -116,35 +124,49 @@ def write_report(report_text, records):
     encoded = base64.b64encode(content.encode()).decode()
     ts = now_iso().replace(":", "-").replace(".", "-")
     url = f"https://api.github.com/repos/{OWNER}/evez-autonomous-ledger/contents/DECISIONS/{ts}_COGNITION_REPORT.json"
-    requests.put(url, headers=HEADERS, json={
-        "message": f"🧠 COGNITION_REPORT @ {report['timestamp']}",
-        "content": encoded,
-    })
+    try:
+        requests.put(url, headers=HEADERS, json={
+            "message": f"🧠 COGNITION_REPORT @ {report['timestamp']}",
+            "content": encoded,
+        }, timeout=15)
+    except Exception as e:
+        print(f"  ⚠️ write_report PUT error: {e}")
     if ABLY_KEY:
-        key_id, key_secret = ABLY_KEY.split(":")
-        requests.post(
-            "https://rest.ably.io/channels/evez-ops/messages",
-            json={"name": "COGNITION_REPORT", "data": json.dumps({
-                "timestamp": report["timestamp"],
-                "synthesis": (report_text or "")[:300],
-            })},
-            auth=(key_id, key_secret)
-        )
+        try:
+            key_id, key_secret = ABLY_KEY.split(":")
+            requests.post(
+                "https://rest.ably.io/channels/evez-ops/messages",
+                json={"name": "COGNITION_REPORT", "data": json.dumps({
+                    "timestamp": report["timestamp"],
+                    "synthesis": (report_text or "")[:300],
+                })},
+                auth=(key_id, key_secret),
+                timeout=15,
+            )
+        except Exception as e:
+            print(f"  ⚠️ write_report Ably error: {e}")
     return report
 
 
 def main():
-    print(f"\n🧠 EVEZ Cognition Synthesizer — {now_iso()}")
-    records = get_recent_decisions(20)
-    print(f"  Loaded {len(records)} recent records")
-    synthesis = synthesize(records)
-    if synthesis:
-        print(f"  Synthesis:\n{synthesis[:300]}...")
-    else:
-        synthesis = "ANTHROPIC_KEY not set — structural synthesis only."
-    report = write_report(synthesis, records)
-    print(f"  ✅ COGNITION_REPORT written. Hash: {report['hash']}")
+    try:
+        print(f"\n🧠 EVEZ Cognition Synthesizer — {now_iso()}")
+        records = get_recent_decisions(20)
+        print(f"  Loaded {len(records)} recent records")
+        synthesis = synthesize(records)
+        if synthesis:
+            print(f"  Synthesis:\n{synthesis[:300]}...")
+        else:
+            synthesis = "ANTHROPIC_KEY not set — structural synthesis only."
+        report = write_report(synthesis, records)
+        print(f"  ✅ COGNITION_REPORT written. Hash: {report['hash']}")
+    except Exception as e:
+        print(f"  ⚠️ Synthesizer error: {e}")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"⚠️ Synthesizer fatal error: {e}")
+        exit(0)
