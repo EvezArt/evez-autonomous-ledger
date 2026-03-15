@@ -2,12 +2,12 @@ name: Cognition Synthesis Loop (1-hour)
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 6,18 * * *'
   workflow_dispatch:
 
 jobs:
   cognition:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
     permissions:
       contents: write
       issues: write

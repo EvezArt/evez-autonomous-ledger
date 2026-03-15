@@ -2,12 +2,12 @@ name: Cockpit Bridge (15-min)
 
 on:
   schedule:
-    - cron: '7 */1 * * *'
+    - cron: '0 9 * * *'
   workflow_dispatch:
 
 jobs:
   cockpit:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
     permissions:
       contents: write
     steps:

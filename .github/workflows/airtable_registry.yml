@@ -2,12 +2,12 @@ name: Airtable Registry (hourly)
 
 on:
   schedule:
-    - cron: '30 * * * *'
+    - cron: '30 8 * * *'
   workflow_dispatch:
 
 jobs:
   airtable:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
     permissions:
       contents: write
       issues: read
