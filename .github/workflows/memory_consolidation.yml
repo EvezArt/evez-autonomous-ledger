@@ -1,8 +1,6 @@
 name: Memory Consolidation (3-hour)
 
 on:
-  schedule:
-    - cron: '0 */12 * * *'
   workflow_dispatch:
 
 jobs:

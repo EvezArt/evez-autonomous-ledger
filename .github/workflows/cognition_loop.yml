@@ -1,8 +1,6 @@
 name: Cognition Synthesis Loop (1-hour)
 
 on:
-  schedule:
-    - cron: '0 6,18 * * *'
   workflow_dispatch:
 
 jobs:
