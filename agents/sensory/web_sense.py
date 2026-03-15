@@ -71,60 +71,73 @@ def write_perception(perception):
     ts = now_iso().replace(":", "-").replace(".", "-")
     fname = f"{ts}_perception_web.json"
     url = f"https://api.github.com/repos/{OWNER}/evez-autonomous-ledger/contents/DECISIONS/{fname}"
-    requests.put(url, headers=HEADERS, json={
-        "message": f"👁 perception: {perception['signal_count']} signals @ {perception['timestamp']}",
-        "content": encoded,
-    })
+    try:
+        requests.put(url, headers=HEADERS, timeout=15, json={
+            "message": f"👁 perception: {perception['signal_count']} signals @ {perception['timestamp']}",
+            "content": encoded,
+        })
+    except Exception as e:
+        print(f"  ⚠ write_perception failed: {e}")
 
 
 def broadcast(perception):
     if not ABLY_KEY:
         return
-    key_id, key_secret = ABLY_KEY.split(":")
-    requests.post(
-        "https://rest.ably.io/channels/evez-ops/messages",
-        json={"name": "web_perception", "data": json.dumps({
-            "timestamp": perception["timestamp"],
-            "signal_count": perception["signal_count"],
-            "top_signals": perception["top_signals"][:3],
-        })},
-        auth=(key_id, key_secret)
-    )
+    try:
+        key_id, key_secret = ABLY_KEY.split(":")
+        requests.post(
+            "https://rest.ably.io/channels/evez-ops/messages",
+            json={"name": "web_perception", "data": json.dumps({
+                "timestamp": perception["timestamp"],
+                "signal_count": perception["signal_count"],
+                "top_signals": perception["top_signals"][:3],
+            })},
+            auth=(key_id, key_secret)
+        )
+    except Exception as e:
+        print(f"  ⚠ broadcast failed: {e}")
 
 
 def main():
-    print(f"\n👁 EVEZ Web Sensory Agent — {now_iso()}")
-    all_items = []
-    for feed in FEEDS:
-        items = fetch_rss(feed)
-        for item in items:
-            item["source"] = feed["name"]
-            item["relevance"] = score_relevance(item)
-        all_items.extend(items)
-        print(f"  {feed['name']}: {len(items)} items")
+    try:
+        print(f"\n👁 EVEZ Web Sensory Agent — {now_iso()}")
+        all_items = []
+        for feed in FEEDS:
+            items = fetch_rss(feed)
+            for item in items:
+                item["source"] = feed["name"]
+                item["relevance"] = score_relevance(item)
+            all_items.extend(items)
+            print(f"  {feed['name']}: {len(items)} items")
 
-    scored = sorted(
-        [i for i in all_items if i.get("relevance", 0) > 0],
-        key=lambda x: x["relevance"], reverse=True
-    )
+        scored = sorted(
+            [i for i in all_items if i.get("relevance", 0) > 0],
+            key=lambda x: x["relevance"], reverse=True
+        )
 
-    perception = {
-        "type": "web_perception",
-        "source": "sensory/web_sense",
-        "timestamp": now_iso(),
-        "feeds_scanned": len(FEEDS),
-        "total_items": len(all_items),
-        "signal_count": len(scored),
-        "top_signals": scored[:10],
-        "hash": hashlib.sha256(
-            json.dumps([s.get("title") for s in scored[:5]]).encode()
-        ).hexdigest()[:16],
-    }
+        perception = {
+            "type": "web_perception",
+            "source": "sensory/web_sense",
+            "timestamp": now_iso(),
+            "feeds_scanned": len(FEEDS),
+            "total_items": len(all_items),
+            "signal_count": len(scored),
+            "top_signals": scored[:10],
+            "hash": hashlib.sha256(
+                json.dumps([s.get("title") for s in scored[:5]]).encode()
+            ).hexdigest()[:16],
+        }
 
-    write_perception(perception)
-    broadcast(perception)
-    print(f"  ✅ {len(scored)} relevant signals written to ledger.")
+        write_perception(perception)
+        broadcast(perception)
+        print(f"  ✅ {len(scored)} relevant signals written to ledger.")
+    except Exception as e:
+        print(f"  ⚠ main() error: {e}")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"⚠ web_sense fatal: {e}")
+        exit(0)

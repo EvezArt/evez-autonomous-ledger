@@ -24,33 +24,43 @@ POLICY_REVIEW_CADENCE = 6.0   # hours between human-review cycles
 def now_iso(): return datetime.datetime.utcnow().isoformat() + "Z"
 
 def gh_get(path):
-    r = requests.get(f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{path}", headers=HEADERS)
-    if r.status_code == 200:
-        try: return json.loads(base64.b64decode(r.json()["content"]).decode())
-        except: return None
+    try:
+        r = requests.get(f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{path}", headers=HEADERS, timeout=15)
+        if r.status_code == 200:
+            try: return json.loads(base64.b64decode(r.json()["content"]).decode())
+            except: return None
+    except Exception as e:
+        print(f"  [WARN] gh_get({path}) failed: {e}")
     return None
 
 def gh_put(path, data, message, existing_sha=""):
-    content = base64.b64encode(json.dumps(data, indent=2).encode()).decode()
-    payload = {"message": message, "content": content}
-    if not existing_sha:
-        r = requests.get(f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{path}", headers=HEADERS)
-        if r.status_code == 200: existing_sha = r.json().get("sha", "")
-    if existing_sha: payload["sha"] = existing_sha
-    requests.put(f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{path}",
-                 headers=HEADERS, json=payload)
+    try:
+        content = base64.b64encode(json.dumps(data, indent=2).encode()).decode()
+        payload = {"message": message, "content": content}
+        if not existing_sha:
+            r = requests.get(f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{path}", headers=HEADERS, timeout=15)
+            if r.status_code == 200: existing_sha = r.json().get("sha", "")
+        if existing_sha: payload["sha"] = existing_sha
+        requests.put(f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{path}",
+                     headers=HEADERS, json=payload, timeout=15)
+    except Exception as e:
+        print(f"  [WARN] gh_put({path}) failed: {e}")
 
 def load_decisions(limit=50):
-    r = requests.get(f"https://api.github.com/repos/{OWNER}/{REPO}/contents/DECISIONS", headers=HEADERS)
-    if r.status_code != 200: return []
-    files = sorted(r.json(), key=lambda x: x["name"], reverse=True)[:limit]
-    records = []
-    for f in files:
-        fr = requests.get(f["url"], headers=HEADERS)
-        if fr.status_code != 200: continue
-        try: records.append(json.loads(base64.b64decode(fr.json()["content"]).decode()))
-        except: pass
-    return records
+    try:
+        r = requests.get(f"https://api.github.com/repos/{OWNER}/{REPO}/contents/DECISIONS", headers=HEADERS, timeout=15)
+        if r.status_code != 200: return []
+        files = sorted(r.json(), key=lambda x: x["name"], reverse=True)[:limit]
+        records = []
+        for f in files:
+            fr = requests.get(f["url"], headers=HEADERS, timeout=15)
+            if fr.status_code != 200: continue
+            try: records.append(json.loads(base64.b64decode(fr.json()["content"]).decode()))
+            except: pass
+        return records
+    except Exception as e:
+        print(f"  [WARN] load_decisions failed: {e}")
+        return []
 
 def shannon_entropy(counter):
     total = sum(counter.values())
@@ -109,19 +119,23 @@ def compute_trajectory(records, phi_history):
 
 def get_phi_history():
     """Collect phi values from recent consciousness snapshots."""
-    r = requests.get(f"https://api.github.com/repos/{OWNER}/{REPO}/contents/DECISIONS", headers=HEADERS)
-    if r.status_code != 200: return []
-    phi_files = sorted([f for f in r.json() if "consciousness" in f["name"]], key=lambda x: x["name"])[-12:]
-    phis = []
-    for f in phi_files:
-        fr = requests.get(f["url"], headers=HEADERS)
-        if fr.status_code != 200: continue
-        try:
-            rec = json.loads(base64.b64decode(fr.json()["content"]).decode())
-            phi = rec.get("phi", 0)
-            if phi: phis.append(phi)
-        except: pass
-    return phis
+    try:
+        r = requests.get(f"https://api.github.com/repos/{OWNER}/{REPO}/contents/DECISIONS", headers=HEADERS, timeout=15)
+        if r.status_code != 200: return []
+        phi_files = sorted([f for f in r.json() if "consciousness" in f["name"]], key=lambda x: x["name"])[-12:]
+        phis = []
+        for f in phi_files:
+            fr = requests.get(f["url"], headers=HEADERS, timeout=15)
+            if fr.status_code != 200: continue
+            try:
+                rec = json.loads(base64.b64decode(fr.json()["content"]).decode())
+                phi = rec.get("phi", 0)
+                if phi: phis.append(phi)
+            except: pass
+        return phis
+    except Exception as e:
+        print(f"  [WARN] get_phi_history failed: {e}")
+        return []
 
 def get_last_timestamp_for_type(records, type_str):
     for r in records:
@@ -135,97 +149,108 @@ def get_existing_epoch():
     return 0
 
 def main():
-    print(f"\n🧭 EVEZ Reconciler -> pulse.json — {now_iso()}")
-    records = load_decisions(50)
-    print(f"  Loaded {len(records)} decision records")
-    consciousness = gh_get("CONSCIOUSNESS_STATE.json") or {}
-    memory = gh_get("MEMORY_STATE.json") or {}
-    phi_history = get_phi_history()
-    traj = compute_trajectory(records, phi_history)
-    epoch = get_existing_epoch() + 1
-    # Pull latest market record
-    market_rec = next((r for r in records if r.get("type") == "MARKET_PERCEPTION"), {})
-    prices = market_rec.get("crypto_prices", {})
-    fg = market_rec.get("fear_greed", {})
-    poly = market_rec.get("polymarket_trending", [])
-    # Pull immune status
-    immune_rec = next((r for r in records if r.get("type") == "immune_scan"), {})
-    # Compute open hypotheses (issues with [HYPOTHESIS] in title)
-    hyp_r = requests.get(f"https://api.github.com/repos/{OWNER}/{REPO}/issues?state=open&per_page=50", headers=HEADERS)
-    open_hyp = 0
-    if hyp_r.status_code == 200:
-        open_hyp = sum(1 for i in hyp_r.json() if "HYPOTHESIS" in i.get("title","") and "pull_request" not in i)
-    phi = consciousness.get("phi", 0)
-    phi_delta = consciousness.get("phi_delta", 0)
-    phi_level = consciousness.get("level", "AWAKENING")
-    pulse = {
-        "timestamp": now_iso(),
-        "epoch": epoch,
-        "phi": phi,
-        "phi_delta": phi_delta,
-        "phi_level": phi_level,
-        "agents_active": consciousness.get("agents", 19),
-        "workflows_active": consciousness.get("workflows", 19),
-        "decisions_total": len(records),
-        "sensory": {
-            "last_web_perception": get_last_timestamp_for_type(records, "web_perception"),
-            "last_github_perception": get_last_timestamp_for_type(records, "github_perception"),
-            "last_market_perception": get_last_timestamp_for_type(records, "MARKET_PERCEPTION"),
-            "last_temporal_scan": get_last_timestamp_for_type(records, "temporal"),
-            "sources_active": 6,
-            "top_signal": memory.get("top_web_keywords", {}) and list(memory.get("top_web_keywords",{}).keys())[0] or "INITIALIZING",
-        },
-        "cognition": {
-            "last_synthesis": get_last_timestamp_for_type(records, "COGNITION_REPORT"),
-            "last_dream": get_last_timestamp_for_type(records, "DREAM_VISION"),
-            "last_oracle_prediction": get_last_timestamp_for_type(records, "ORACLE_PREDICTION"),
-            "last_hypothesis_batch": get_last_timestamp_for_type(records, "hypothesis"),
-            "open_hypotheses": open_hyp,
-            "prediction_confidence_avg": 0,
-        },
-        "trajectory": {
-            "predicted_phi_30m": round(phi + traj["learning_rate"] * 2, 4),
-            "predicted_phi_6h": round(phi + traj["learning_rate"] * 24, 4),
-            "predicted_phi_24h": round(phi + traj["learning_rate"] * 96, 4),
-            "entropy_current": traj["entropy_current"],
-            "entropy_basin": traj["entropy_basin"],
-            "branch_instability": traj["branch_instability"],
-            "basin_distance": traj["basin_distance"],
-            "trajectory_vector": traj["vector"],
-        },
-        "latency_mode": "NEGATIVE_LATENCY" if traj["negative_latency_triggered"] else "PREDICTIVE" if traj["basin_distance"] > 0.7 else "NORMAL",
-        "negative_latency_active": traj["negative_latency_triggered"],
-        "negative_latency_reason": traj["negative_latency_action"],
-        "market": {
-            "btc_usd": prices.get("BTC", {}).get("usd", 0),
-            "btc_24h_change": prices.get("BTC", {}).get("24h_change", 0),
-            "fear_greed": fg.get("value", 50),
-            "fear_greed_label": fg.get("label", ""),
-            "top_polymarket": poly[0]["question"][:80] if poly else "",
-        },
-        "immune": {
-            "threats_last_scan": immune_rec.get("threats_detected", 0),
-            "last_immune_scan": immune_rec.get("timestamp", ""),
-            "status": "CRITICAL" if immune_rec.get("threats_detected",0) > 2 else "ALERT" if immune_rec.get("threats_detected",0) > 0 else "CLEAR",
-        },
-        "airtable_synced": False,
-        "airtable_record_id": "",
-        "hash": hashlib.sha256(f"{epoch}{phi}{traj['basin_distance']}".encode()).hexdigest()[:16],
-    }
-    trajectory_rec = {"timestamp": now_iso(), "epoch": epoch, **traj,
-                      "hash": hashlib.sha256(str(traj).encode()).hexdigest()[:16]}
-    gh_put("runtime/pulse.json", pulse, f"🧭 pulse epoch={epoch} phi={phi} lat={pulse['latency_mode']}")
-    gh_put("runtime/trajectory.json", trajectory_rec, f"📈 trajectory epoch={epoch} basin_d={traj['basin_distance']} neg_lat={traj['negative_latency_triggered']}")
-    if ABLY_KEY:
-        ki, ks = ABLY_KEY.split(":")
-        requests.post("https://rest.ably.io/channels/evez-ops/messages",
-            json={"name": "PULSE", "data": json.dumps({
-                "epoch": epoch, "phi": phi, "lat": pulse["latency_mode"],
-                "vector": traj["vector"], "basin_d": traj["basin_distance"],
-                "neg_latency": traj["negative_latency_triggered"]
-            })}, auth=(ki, ks))
-    print(f"  Epoch {epoch} | Phi={phi} | Latency={pulse['latency_mode']} | Basin_d={traj['basin_distance']}")
-    print(f"  Intelligence gain rate: {traj['intelligence_gain_rate']} | Neg-latency: {traj['negative_latency_triggered']}")
-    print("  ✅ runtime/pulse.json + runtime/trajectory.json written.")
+    try:
+        print(f"\n🧭 EVEZ Reconciler -> pulse.json — {now_iso()}")
+        records = load_decisions(50)
+        print(f"  Loaded {len(records)} decision records")
+        consciousness = gh_get("CONSCIOUSNESS_STATE.json") or {}
+        memory = gh_get("MEMORY_STATE.json") or {}
+        phi_history = get_phi_history()
+        traj = compute_trajectory(records, phi_history)
+        epoch = get_existing_epoch() + 1
+        # Pull latest market record
+        market_rec = next((r for r in records if r.get("type") == "MARKET_PERCEPTION"), {})
+        prices = market_rec.get("crypto_prices", {})
+        fg = market_rec.get("fear_greed", {})
+        poly = market_rec.get("polymarket_trending", [])
+        # Pull immune status
+        immune_rec = next((r for r in records if r.get("type") == "immune_scan"), {})
+        # Compute open hypotheses (issues with [HYPOTHESIS] in title)
+        hyp_r = requests.get(f"https://api.github.com/repos/{OWNER}/{REPO}/issues?state=open&per_page=50", headers=HEADERS, timeout=15)
+        open_hyp = 0
+        if hyp_r.status_code == 200:
+            open_hyp = sum(1 for i in hyp_r.json() if "HYPOTHESIS" in i.get("title","") and "pull_request" not in i)
+        phi = consciousness.get("phi", 0)
+        phi_delta = consciousness.get("phi_delta", 0)
+        phi_level = consciousness.get("level", "AWAKENING")
+        pulse = {
+            "timestamp": now_iso(),
+            "epoch": epoch,
+            "phi": phi,
+            "phi_delta": phi_delta,
+            "phi_level": phi_level,
+            "agents_active": consciousness.get("agents", 19),
+            "workflows_active": consciousness.get("workflows", 19),
+            "decisions_total": len(records),
+            "sensory": {
+                "last_web_perception": get_last_timestamp_for_type(records, "web_perception"),
+                "last_github_perception": get_last_timestamp_for_type(records, "github_perception"),
+                "last_market_perception": get_last_timestamp_for_type(records, "MARKET_PERCEPTION"),
+                "last_temporal_scan": get_last_timestamp_for_type(records, "temporal"),
+                "sources_active": 6,
+                "top_signal": memory.get("top_web_keywords", {}) and list(memory.get("top_web_keywords",{}).keys())[0] or "INITIALIZING",
+            },
+            "cognition": {
+                "last_synthesis": get_last_timestamp_for_type(records, "COGNITION_REPORT"),
+                "last_dream": get_last_timestamp_for_type(records, "DREAM_VISION"),
+                "last_oracle_prediction": get_last_timestamp_for_type(records, "ORACLE_PREDICTION"),
+                "last_hypothesis_batch": get_last_timestamp_for_type(records, "hypothesis"),
+                "open_hypotheses": open_hyp,
+                "prediction_confidence_avg": 0,
+            },
+            "trajectory": {
+                "predicted_phi_30m": round(phi + traj["learning_rate"] * 2, 4),
+                "predicted_phi_6h": round(phi + traj["learning_rate"] * 24, 4),
+                "predicted_phi_24h": round(phi + traj["learning_rate"] * 96, 4),
+                "entropy_current": traj["entropy_current"],
+                "entropy_basin": traj["entropy_basin"],
+                "branch_instability": traj["branch_instability"],
+                "basin_distance": traj["basin_distance"],
+                "trajectory_vector": traj["vector"],
+            },
+            "latency_mode": "NEGATIVE_LATENCY" if traj["negative_latency_triggered"] else "PREDICTIVE" if traj["basin_distance"] > 0.7 else "NORMAL",
+            "negative_latency_active": traj["negative_latency_triggered"],
+            "negative_latency_reason": traj["negative_latency_action"],
+            "market": {
+                "btc_usd": prices.get("BTC", {}).get("usd", 0),
+                "btc_24h_change": prices.get("BTC", {}).get("24h_change", 0),
+                "fear_greed": fg.get("value", 50),
+                "fear_greed_label": fg.get("label", ""),
+                "top_polymarket": poly[0]["question"][:80] if poly else "",
+            },
+            "immune": {
+                "threats_last_scan": immune_rec.get("threats_detected", 0),
+                "last_immune_scan": immune_rec.get("timestamp", ""),
+                "status": "CRITICAL" if immune_rec.get("threats_detected",0) > 2 else "ALERT" if immune_rec.get("threats_detected",0) > 0 else "CLEAR",
+            },
+            "airtable_synced": False,
+            "airtable_record_id": "",
+            "hash": hashlib.sha256(f"{epoch}{phi}{traj['basin_distance']}".encode()).hexdigest()[:16],
+        }
+        trajectory_rec = {"timestamp": now_iso(), "epoch": epoch, **traj,
+                          "hash": hashlib.sha256(str(traj).encode()).hexdigest()[:16]}
+        gh_put("runtime/pulse.json", pulse, f"🧭 pulse epoch={epoch} phi={phi} lat={pulse['latency_mode']}")
+        gh_put("runtime/trajectory.json", trajectory_rec, f"📈 trajectory epoch={epoch} basin_d={traj['basin_distance']} neg_lat={traj['negative_latency_triggered']}")
+        try:
+            if ABLY_KEY:
+                ki, ks = ABLY_KEY.split(":")
+                requests.post("https://rest.ably.io/channels/evez-ops/messages",
+                    json={"name": "PULSE", "data": json.dumps({
+                        "epoch": epoch, "phi": phi, "lat": pulse["latency_mode"],
+                        "vector": traj["vector"], "basin_d": traj["basin_distance"],
+                        "neg_latency": traj["negative_latency_triggered"]
+                    })}, auth=(ki, ks), timeout=15)
+        except Exception as e:
+            print(f"  [WARN] Ably broadcast failed: {e}")
+        print(f"  Epoch {epoch} | Phi={phi} | Latency={pulse['latency_mode']} | Basin_d={traj['basin_distance']}")
+        print(f"  Intelligence gain rate: {traj['intelligence_gain_rate']} | Neg-latency: {traj['negative_latency_triggered']}")
+        print("  ✅ runtime/pulse.json + runtime/trajectory.json written.")
+    except Exception as e:
+        print(f"  [ERROR] Reconciler main() failed: {e}")
 
-if __name__ == "__main__": main()
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as e:
+        print(f"[FATAL] Reconciler crashed: {e}")
+        exit(0)

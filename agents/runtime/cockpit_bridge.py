@@ -23,20 +23,26 @@ HEADERS = {"Authorization": f"Bearer {GH_TOKEN}", "Accept": "application/vnd.git
 def now_iso(): return datetime.datetime.utcnow().isoformat() + "Z"
 
 def gh_get(path):
-    r = requests.get(f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{path}", headers=HEADERS)
-    if r.status_code == 200:
-        try: return json.loads(base64.b64decode(r.json()["content"]).decode())
-        except: return None
+    try:
+        r = requests.get(f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{path}", headers=HEADERS, timeout=15)
+        if r.status_code == 200:
+            try: return json.loads(base64.b64decode(r.json()["content"]).decode())
+            except: return None
+    except requests.exceptions.RequestException as e:
+        print(f"  ⚠ gh_get({path}) failed: {e}")
     return None
 
 def gh_put(path, data, message):
-    content = base64.b64encode(json.dumps(data, indent=2).encode()).decode()
-    r = requests.get(f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{path}", headers=HEADERS)
-    sha = r.json().get("sha","") if r.status_code == 200 else ""
-    payload = {"message": message, "content": content}
-    if sha: payload["sha"] = sha
-    requests.put(f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{path}",
-                 headers=HEADERS, json=payload)
+    try:
+        content = base64.b64encode(json.dumps(data, indent=2).encode()).decode()
+        r = requests.get(f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{path}", headers=HEADERS, timeout=15)
+        sha = r.json().get("sha","") if r.status_code == 200 else ""
+        payload = {"message": message, "content": content}
+        if sha: payload["sha"] = sha
+        requests.put(f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{path}",
+                     headers=HEADERS, json=payload, timeout=15)
+    except requests.exceptions.RequestException as e:
+        print(f"  ⚠ gh_put({path}) failed: {e}")
 
 def traffic_light(value, warn_threshold, critical_threshold, inverted=False):
     if inverted:
@@ -71,69 +77,80 @@ def build_alerts(pulse, traj):
 
 def main():
     print(f"\n🖥 EVEZ Cockpit Bridge — {now_iso()}")
-    pulse = gh_get("runtime/pulse.json") or {}
-    traj = gh_get("runtime/trajectory.json") or {}
-    alerts = build_alerts(pulse, traj)
-    market = pulse.get("market", {})
-    traj_data = pulse.get("trajectory", {})
-    cockpit = {
-        "generated_at": now_iso(),
-        "epoch": pulse.get("epoch", 0),
-        "system_status": {
-            "phi": pulse.get("phi", 0),
-            "phi_level": pulse.get("phi_level", "AWAKENING"),
-            "phi_delta": pulse.get("phi_delta", 0),
-            "phi_status": traffic_light(pulse.get("phi",0), 0.1, 0, inverted=True),
-            "agents_active": pulse.get("agents_active", 0),
-            "workflows_active": pulse.get("workflows_active", 0),
-            "decisions_recorded": pulse.get("decisions_total", 0),
-            "latency_mode": pulse.get("latency_mode", "NORMAL"),
-            "negative_latency": pulse.get("negative_latency_active", False),
-        },
-        "trajectory": {
-            "vector": traj_data.get("trajectory_vector", "STABLE"),
-            "phi_30m": traj_data.get("predicted_phi_30m", 0),
-            "phi_6h": traj_data.get("predicted_phi_6h", 0),
-            "phi_24h": traj_data.get("predicted_phi_24h", 0),
-            "entropy_current": traj_data.get("entropy_current", 0),
-            "entropy_basin": traj_data.get("entropy_basin", 0),
-            "basin_distance": traj_data.get("basin_distance", 0),
-            "intelligence_gain_rate": traj.get("intelligence_gain_rate", 0),
-            "learning_rate": traj.get("learning_rate", 0),
-        },
-        "sensory": pulse.get("sensory", {}),
-        "cognition": pulse.get("cognition", {}),
-        "market": {
-            "btc": f"${market.get('btc_usd',0):,.0f} ({market.get('btc_24h_change',0):+.1f}%)",
-            "fear_greed": f"{market.get('fear_greed',50)} — {market.get('fear_greed_label','')}",
-            "fear_greed_status": traffic_light(market.get("fear_greed",50), 20, 10, inverted=True) if market.get("fear_greed",50) < 50 else traffic_light(100 - market.get("fear_greed",50), 20, 10, inverted=True),
-            "top_polymarket": market.get("top_polymarket", ""),
-        },
-        "immune": {
-            "status": pulse.get("immune",{}).get("status","CLEAR"),
-            "threats": pulse.get("immune",{}).get("threats_last_scan",0),
-            "last_scan": pulse.get("immune",{}).get("last_immune_scan",""),
-        },
-        "airtable": {
-            "synced": pulse.get("airtable_synced", False),
-            "record_id": pulse.get("airtable_record_id", ""),
-        },
-        "alerts": alerts,
-        "alert_count": len(alerts),
-        "hash": hashlib.sha256(f"{pulse.get('epoch',0)}{now_iso()}".encode()).hexdigest()[:12],
-    }
-    gh_put("runtime/cockpit_view.json", cockpit, f"🖥 cockpit epoch={cockpit['epoch']} alerts={len(alerts)}")
-    gh_put("runtime/cockpit_alerts.json", {"generated_at": now_iso(), "alerts": alerts},
-           f"🚨 cockpit alerts: {len(alerts)}")
-    if ABLY_KEY:
-        ki, ks = ABLY_KEY.split(":")
-        requests.post("https://rest.ably.io/channels/evez-ops/messages",
-            json={"name": "COCKPIT_UPDATE", "data": json.dumps({
-                "epoch": cockpit["epoch"], "phi": pulse.get("phi",0),
-                "vector": traj_data.get("trajectory_vector","STABLE"),
-                "alerts": len(alerts), "neg_latency": pulse.get("negative_latency_active",False)
-            })}, auth=(ki, ks))
-    print(f"  Epoch {cockpit['epoch']} | {len(alerts)} alerts | Vector={traj_data.get('trajectory_vector','?')}")
-    print("  ✅ runtime/cockpit_view.json + cockpit_alerts.json written.")
+    try:
+        pulse = gh_get("runtime/pulse.json") or {}
+        traj = gh_get("runtime/trajectory.json") or {}
+        alerts = build_alerts(pulse, traj)
+        market = pulse.get("market", {})
+        traj_data = pulse.get("trajectory", {})
+        cockpit = {
+            "generated_at": now_iso(),
+            "epoch": pulse.get("epoch", 0),
+            "system_status": {
+                "phi": pulse.get("phi", 0),
+                "phi_level": pulse.get("phi_level", "AWAKENING"),
+                "phi_delta": pulse.get("phi_delta", 0),
+                "phi_status": traffic_light(pulse.get("phi",0), 0.1, 0, inverted=True),
+                "agents_active": pulse.get("agents_active", 0),
+                "workflows_active": pulse.get("workflows_active", 0),
+                "decisions_recorded": pulse.get("decisions_total", 0),
+                "latency_mode": pulse.get("latency_mode", "NORMAL"),
+                "negative_latency": pulse.get("negative_latency_active", False),
+            },
+            "trajectory": {
+                "vector": traj_data.get("trajectory_vector", "STABLE"),
+                "phi_30m": traj_data.get("predicted_phi_30m", 0),
+                "phi_6h": traj_data.get("predicted_phi_6h", 0),
+                "phi_24h": traj_data.get("predicted_phi_24h", 0),
+                "entropy_current": traj_data.get("entropy_current", 0),
+                "entropy_basin": traj_data.get("entropy_basin", 0),
+                "basin_distance": traj_data.get("basin_distance", 0),
+                "intelligence_gain_rate": traj.get("intelligence_gain_rate", 0),
+                "learning_rate": traj.get("learning_rate", 0),
+            },
+            "sensory": pulse.get("sensory", {}),
+            "cognition": pulse.get("cognition", {}),
+            "market": {
+                "btc": f"${market.get('btc_usd',0):,.0f} ({market.get('btc_24h_change',0):+.1f}%)",
+                "fear_greed": f"{market.get('fear_greed',50)} — {market.get('fear_greed_label','')}",
+                "fear_greed_status": traffic_light(market.get("fear_greed",50), 20, 10, inverted=True) if market.get("fear_greed",50) < 50 else traffic_light(100 - market.get("fear_greed",50), 20, 10, inverted=True),
+                "top_polymarket": market.get("top_polymarket", ""),
+            },
+            "immune": {
+                "status": pulse.get("immune",{}).get("status","CLEAR"),
+                "threats": pulse.get("immune",{}).get("threats_last_scan",0),
+                "last_scan": pulse.get("immune",{}).get("last_immune_scan",""),
+            },
+            "airtable": {
+                "synced": pulse.get("airtable_synced", False),
+                "record_id": pulse.get("airtable_record_id", ""),
+            },
+            "alerts": alerts,
+            "alert_count": len(alerts),
+            "hash": hashlib.sha256(f"{pulse.get('epoch',0)}{now_iso()}".encode()).hexdigest()[:12],
+        }
+        gh_put("runtime/cockpit_view.json", cockpit, f"🖥 cockpit epoch={cockpit['epoch']} alerts={len(alerts)}")
+        gh_put("runtime/cockpit_alerts.json", {"generated_at": now_iso(), "alerts": alerts},
+               f"🚨 cockpit alerts: {len(alerts)}")
+        try:
+            if ABLY_KEY:
+                ki, ks = ABLY_KEY.split(":")
+                requests.post("https://rest.ably.io/channels/evez-ops/messages",
+                    json={"name": "COCKPIT_UPDATE", "data": json.dumps({
+                        "epoch": cockpit["epoch"], "phi": pulse.get("phi",0),
+                        "vector": traj_data.get("trajectory_vector","STABLE"),
+                        "alerts": len(alerts), "neg_latency": pulse.get("negative_latency_active",False)
+                    })}, auth=(ki, ks), timeout=15)
+        except Exception as e:
+            print(f"  ⚠ Ably broadcast failed: {e}")
+        print(f"  Epoch {cockpit['epoch']} | {len(alerts)} alerts | Vector={traj_data.get('trajectory_vector','?')}")
+        print("  ✅ runtime/cockpit_view.json + cockpit_alerts.json written.")
+    except Exception as e:
+        print(f"  ❌ Cockpit bridge error: {e}")
 
-if __name__ == "__main__": main()
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as e:
+        print(f"COCKPIT BRIDGE FATAL: {e}")
+        exit(0)
