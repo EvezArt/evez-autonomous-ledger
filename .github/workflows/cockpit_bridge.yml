@@ -1,0 +1,23 @@
+name: Cockpit Bridge (15-min)
+
+on:
+  schedule:
+    - cron: '7 */1 * * *'
+  workflow_dispatch:
+
+jobs:
+  cockpit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests
+      - name: Run cockpit bridge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ABLY_KEY: ${{ secrets.ABLY_KEY }}
+        run: python agents/runtime/cockpit_bridge.py
