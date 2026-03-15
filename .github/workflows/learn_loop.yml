@@ -1,0 +1,22 @@
+name: Nightly Learn Loop
+
+on:
+  schedule:
+    - cron: '0 10 * * *'  # 02:00 PT = 10:00 UTC
+  workflow_dispatch:
+
+jobs:
+  learn:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests
+      - name: Run learn agent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python agents/learn_agent.py
