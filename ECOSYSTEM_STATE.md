@@ -1,49 +1,49 @@
-# ECOSYSTEM STATE — 2026-03-12T09:00Z
+# ECOSYSTEM_STATE.md
+**Last updated:** 2026-03-26T06:01 PT — Synapse Engine run #003
 
-## Repo Inventory (41 repos)
+## Vercel Projects (9 tracked)
 
-### ACTIVE + HIGH MOMENTUM (pushed today)
-| Repo | Language | Size | Status | Notes |
-|------|----------|------|--------|-------|
-| surething-offline | Python | 77kb | ✅ Vercel READY | evez-operator, spine API |
-| evez-os | Python | 1.6MB | ❌ Vercel ERROR | react-scripts build broken |
-| Evez666 | Python | 18.8MB | ⚙️ No Vercel | Atlas v3, highest activity |
-| evez-vcl | HTML | 7.4MB | ⚙️ Vercel evez-vcl | Visual Cognition Layer |
-| evez (private) | JavaScript | 39kb | ⚙️ Active | |
-| agentvault | Python | 11kb | ⚙️ Active | AgentOS vault |
-| evez666-arg-canon | Python | 57kb | ✅ Vercel | ARG multimetaverse |
-| evez-meme-bus | Python | 53kb | ⚙️ Active | Event-sourced meme bus |
-| evez-agentnet | Python | 86kb | ⚙️ Active | Multi-agent income loop |
-| openclaw-runtime (private) | TypeScript | 203kb | ✅ Vercel | WebSocket gateway |
+| Project | Status | Notes |
+|---------|--------|---------|
+| evez-operator | ✅ READY | evez-operator.vercel.app |
+| evez-os | ✅ READY | dashboard/ static, fixed 2026-03-12 |
+| openclaw-phone-pwa | ✅ READY | Fixed: rootDirectory=pwa (static HTML), was OOM/SIGKILL |
+| ephv | ✅ READY | — |
+| evez-animated-goggles | ❌ ERROR | bun run build exit 1 — TypeScript/workspace compile error, needs manual log check |
+| evez666-arg-canon | ✅ READY | — |
+| evez-crawhub | ✅ READY | — |
+| evez-vcl | ✅ READY | — |
+| evez-openclaw-dashboard | ✅ READY | — |
 
-### STALE (not pushed today)
-| Repo | Last Push | Notes |
-|------|-----------|-------|
-| gh-aw | 2026-03-11 | GitHub Agentic Workflows |
-| codex | 2026-03-11 | Rust coding agent |
-| moltbot-live | 2026-03-04 | AI gameplay stream |
-| evez-sim | 2026-02-26 | Barnes-Hut simulation |
-| openclaw | 2026-02-26 | Cross-platform AI assistant |
+**Summary: 8/9 READY — 1 ERROR (animated-goggles)**
 
-## Vercel Deployments
+## GitHub Repos (51 total, up from 41 on 2026-03-12)
 
-| Project | State | URL | Issue |
-|---------|-------|-----|-------|
-| evez-operator | ✅ READY | evez-operator.vercel.app | None |
-| evez-os | ❌ ERROR | — | react-scripts exit 127 |
-| openclaw-phone-pwa | ❓ Unknown | openclaw-phone-pwa.vercel.app | |
-| ephv | ❓ Unknown | ephv.vercel.app | |
-| evez-animated-goggles | ❓ Unknown | evez-animated-goggles.vercel.app | |
-| evez666-arg-canon | ❓ Unknown | evez666-arg-canon.vercel.app | |
-| evez-crawhub | ❓ Unknown | evez-crawhub.vercel.app | |
-| evez-vcl | ❓ Unknown | evez-vcl.vercel.app | |
-| evez-openclaw-dashboard | ❓ Unknown | evez-openclaw-dashboard.vercel.app | |
+### HIGH_MOMENTUM (score = size_kb/100 + open_issues*2)
+1. **gh-aw** — 4322.2 (Go, 428MB, 18 issues)
+2. **codeql** — 4150.0 (428MB, 8 issues)
+3. **openclaw** — 1710.8 (TypeScript, 162MB, 24 issues) ← actively pushed
+4. **codex** — 605.0 (Rust, 57MB, 19 issues) ← actively pushed
+5. **Evez666** — 200.9 (Python, 18MB, 6 issues)
 
-## Next Autonomous Actions
-1. Fix evez-os Vercel build (react-scripts → vite or fix package.json)
-2. Add CI/CD to Evez666 (no workflow detected)
-3. Scaffold evez-autonomous-ledger audit workflow
-4. Wire BigDataCloud IP enrichment to evez-operator spine
-5. Enable Twitter posting on account unlock
+### CI Status
+- `evez-agentnet` / `skill-validate`: ~10 failures in burst 12:40-12:57 UTC. SKILL.md valid at HEAD. Self-resolving.
+- `evez-net` / orchestrator: failing (same burst cause)
+- `evez666-arg-canon` / sound-reasoning-daemon: failing (investigate)
 
-_Auto-updated by Synapse Engine every 6h_
+## Gmail Triage (15+ unread)
+- 11+ [ERROR_REPORT] from evez-agentnet CI spam
+- 1 [ERROR_REPORT] evez-net orchestrator
+- 1 [ERROR_REPORT] evez666-arg-canon sound daemon
+- 2 [NOISE] ChatGPT task updates
+
+## Blockers
+- `evez-animated-goggles`: bun build compile error — check https://vercel.com/evez666/evez-animated-goggles/5szhTW8xrAgkSTQGkzZgrwUZ4DaT
+- `evez-agentnet` CI burst: SKILL.md valid; investigate push source
+- Discord bot: 401 — token refresh needed
+- Base Sepolia wallet: needs ~0.01 ETH for FIRE#125
+
+## Synapse Engine Health
+- Run #003 — 2026-03-26T06:01 PT
+- Next run: ~12:01 PT
+- Ledger: EvezArt/evez-autonomous-ledger
