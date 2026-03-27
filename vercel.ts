@@ -1,6 +1,4 @@
-import type { VercelConfig } from '@vercel/config/v1';
-
-export const config: VercelConfig = {
+export const config = {
   framework: 'nextjs',
   buildCommand: 'next build',
   github: {
@@ -16,4 +14,4 @@ export const config: VercelConfig = {
       schedule: '*/5 * * * *',
     },
   ],
-};
+} as const;
