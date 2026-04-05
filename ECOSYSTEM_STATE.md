@@ -1,49 +1,45 @@
 # ECOSYSTEM_STATE.md
-**Last updated:** 2026-03-26T06:01 PT — Synapse Engine run #003
+**Last updated:** 2026-04-04T18:05 PT — Synapse Engine run #004
 
 ## Vercel Projects (9 tracked)
 
 | Project | Status | Notes |
-|---------|--------|---------|
-| evez-operator | ✅ READY | evez-operator.vercel.app |
-| evez-os | ✅ READY | dashboard/ static, fixed 2026-03-12 |
-| openclaw-phone-pwa | ✅ READY | Fixed: rootDirectory=pwa (static HTML), was OOM/SIGKILL |
-| ephv | ✅ READY | — |
-| evez-animated-goggles | ❌ ERROR | bun run build exit 1 — TypeScript/workspace compile error, needs manual log check |
-| evez666-arg-canon | ✅ READY | — |
-| evez-crawhub | ✅ READY | — |
-| evez-vcl | ✅ READY | — |
-| evez-openclaw-dashboard | ✅ READY | — |
+|---------|--------|-------|
+| evez-operator | ✅ READY | dpl_6wxCLpVwj7Af23hBv6oCD78RCzbZ, last: docs update |
+| evez-os | ✅ READY | dpl_6YbqhL6bFCL7B87suvAAXmUckHLC, last: falsifier gate + spine validation (PR #37) |
+| openclaw-phone-pwa | ✅ READY | dpl_5rtQp9f7HK6HDuVmtWfsSyNVjimV, last: dependabot npm/yarn |
+| ephv | ✅ READY | dpl_4w1tAmgpZ7M3FD4a5McTCibBwL7f, last: sentience layer merged |
+| evez-animated-goggles | ❌ ERROR | bun run build exit 1 (dpl_5szhTW8xrAgkSTQGkzZgrwUZ4DaT) — persistent since run #003 |
+| evez666-arg-canon | ✅ READY | dpl_7Zori4yLSywPhwXgrN7rCajqJQi7, last: genesis-trigger + agents |
+| evez-crawhub | ✅ READY | dpl_FqCRCC6iFVaq436SSBuWjaXWJh9J, last: thin-caller CI policy |
+| evez-vcl | ✅ READY | dpl_4RZiYRDj2kpHCraick8WfMgYHqNi, last: version contract CI |
+| evez-openclaw-dashboard | ✅ READY | dpl_BvyYZ73dkrWFnXCKT1UgYY995D4y, last: dependabot npm/yarn |
 
-**Summary: 8/9 READY — 1 ERROR (animated-goggles)**
+**Summary:** 8/9 READY, 1 ERROR
 
-## GitHub Repos (51 total, up from 41 on 2026-03-12)
+## GitHub Repos (67 total, +16 since 2026-03-26)
 
-### HIGH_MOMENTUM (score = size_kb/100 + open_issues*2)
-1. **gh-aw** — 4322.2 (Go, 428MB, 18 issues)
-2. **codeql** — 4150.0 (428MB, 8 issues)
-3. **openclaw** — 1710.8 (TypeScript, 162MB, 24 issues) ← actively pushed
-4. **codex** — 605.0 (Rust, 57MB, 19 issues) ← actively pushed
-5. **Evez666** — 200.9 (Python, 18MB, 6 issues)
+### HIGH_MOMENTUM
+1. **gh-aw** — 4322.1 (428MB, 18 issues, pushed 2026-04-02)
+2. **codeql** — 4165.3 (414MB, 11 issues, pushed 2026-04-03)
+3. **openclaw** — 162MB, 25 issues, pushed 2026-04-03 ← active
+4. **codex** — 19 issues, pushed 2026-04-03 ← active
+5. **Evez666** — 6 issues, pushed 2026-03-30
 
-### CI Status
-- `evez-agentnet` / `skill-validate`: ~10 failures in burst 12:40-12:57 UTC. SKILL.md valid at HEAD. Self-resolving.
-- `evez-net` / orchestrator: failing (same burst cause)
-- `evez666-arg-canon` / sound-reasoning-daemon: failing (investigate)
+### GitHub Issues
+- [AUTONOMOUS] label: 0 open issues
+- Stale: 63/67 repos >48h (expected)
 
-## Gmail Triage (15+ unread)
-- 11+ [ERROR_REPORT] from evez-agentnet CI spam
-- 1 [ERROR_REPORT] evez-net orchestrator
-- 1 [ERROR_REPORT] evez666-arg-canon sound daemon
-- 2 [NOISE] ChatGPT task updates
+## Email (last 6h)
+- Unread: 0
+- Alerts: none
 
 ## Blockers
-- `evez-animated-goggles`: bun build compile error — check https://vercel.com/evez666/evez-animated-goggles/5szhTW8xrAgkSTQGkzZgrwUZ4DaT
-- `evez-agentnet` CI burst: SKILL.md valid; investigate push source
-- Discord bot: 401 — token refresh needed
-- Base Sepolia wallet: needs ~0.01 ETH for FIRE#125
+- evez-animated-goggles: bun compile error
+- Twitter @EVEZ666: locked
+- Discord: token 401
+- Base Sepolia: needs ~0.01 ETH
 
-## Synapse Engine Health
-- Run #003 — 2026-03-26T06:01 PT
-- Next run: ~12:01 PT
-- Ledger: EvezArt/evez-autonomous-ledger
+## Health
+- Synapse Engine: ✅ running (run #004)
+- Next run: ~00:05 PT (2026-04-05)
