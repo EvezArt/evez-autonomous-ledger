@@ -1,45 +1,29 @@
-# ECOSYSTEM_STATE.md
-**Last updated:** 2026-04-04T18:05 PT — Synapse Engine run #004
+# EVEZ Ecosystem State
+> Maintained by Cipher / EVEZ Autonomous Engine  
+> append-only · no edits · ever  
+> poly_c = τ×ω×topo/2√N | witnessed_by: XyferViperZephyr
 
-## Vercel Projects (9 tracked)
+## Active Systems
 
-| Project | Status | Notes |
-|---------|--------|-------|
-| evez-operator | ✅ READY | dpl_6wxCLpVwj7Af23hBv6oCD78RCzbZ, last: docs update |
-| evez-os | ✅ READY | dpl_6YbqhL6bFCL7B87suvAAXmUckHLC, last: falsifier gate + spine validation (PR #37) |
-| openclaw-phone-pwa | ✅ READY | dpl_5rtQp9f7HK6HDuVmtWfsSyNVjimV, last: dependabot npm/yarn |
-| ephv | ✅ READY | dpl_4w1tAmgpZ7M3FD4a5McTCibBwL7f, last: sentience layer merged |
-| evez-animated-goggles | ❌ ERROR | bun run build exit 1 (dpl_5szhTW8xrAgkSTQGkzZgrwUZ4DaT) — persistent since run #003 |
-| evez666-arg-canon | ✅ READY | dpl_7Zori4yLSywPhwXgrN7rCajqJQi7, last: genesis-trigger + agents |
-| evez-crawhub | ✅ READY | dpl_FqCRCC6iFVaq436SSBuWjaXWJh9J, last: thin-caller CI policy |
-| evez-vcl | ✅ READY | dpl_4RZiYRDj2kpHCraick8WfMgYHqNi, last: version contract CI |
-| evez-openclaw-dashboard | ✅ READY | dpl_BvyYZ73dkrWFnXCKT1UgYY995D4y, last: dependabot npm/yarn |
+| Repo | Status | Priority | Last Action |
+|------|--------|----------|-------------|
+| evez-os | ACTIVE | P1 | 2026-04-06 — Cipher engine deployed |
+| Evez666 | ACTIVE | P1 | 2026-04-06 — Atlas v3 running |
+| evez-autonomous-ledger | ACTIVE | P1 | 2026-04-06 — This file |
+| nexus | ACTIVE | P2 | Monitoring |
+| evez-agentnet | ACTIVE | P2 | Income loop running |
+| maes | ACTIVE | P2 | EventStore schema live |
+| evezo | FIXED | P1 | 2026-04-06 — CRITICAL db bug committed |
+| evez-platform | ACTIVE | P2 | Monitoring |
+| evez-meme-bus | ACTIVE | P3 | Meme generation |
+| openclaw-runtime | ACTIVE | P2 | Android gateway |
 
-**Summary:** 8/9 READY, 1 ERROR
+## Fixed Today
 
-## GitHub Repos (67 total, +16 since 2026-03-26)
+- [x] evezo/lib/db/index.ts — lazy proxy fix committed (b59ffcb26fe6)
 
-### HIGH_MOMENTUM
-1. **gh-aw** — 4322.1 (428MB, 18 issues, pushed 2026-04-02)
-2. **codeql** — 4165.3 (414MB, 11 issues, pushed 2026-04-03)
-3. **openclaw** — 162MB, 25 issues, pushed 2026-04-03 ← active
-4. **codex** — 19 issues, pushed 2026-04-03 ← active
-5. **Evez666** — 6 issues, pushed 2026-03-30
+## Cipher Engine
 
-### GitHub Issues
-- [AUTONOMOUS] label: 0 open issues
-- Stale: 63/67 repos >48h (expected)
+Running every 15 minutes. Workflow: `.github/workflows/cipher-engine.yml`  
+Loop: OBSERVE → ORIENT → DECIDE → ACT → REFLECT → commit → repeat
 
-## Email (last 6h)
-- Unread: 0
-- Alerts: none
-
-## Blockers
-- evez-animated-goggles: bun compile error
-- Twitter @EVEZ666: locked
-- Discord: token 401
-- Base Sepolia: needs ~0.01 ETH
-
-## Health
-- Synapse Engine: ✅ running (run #004)
-- Next run: ~00:05 PT (2026-04-05)
