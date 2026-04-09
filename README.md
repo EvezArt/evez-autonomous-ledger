@@ -1,45 +1,89 @@
-# evez-autonomous-ledger
+<div align="center">
 
-> The living brain of the EVEZ self-development loop.
+# 📖 evez-autonomous-ledger
 
-This repository is the master ledger for the EVEZ Autonomous Ecosystem — every build decision, deployment, agent action, and system evolution state is logged here automatically.
+### *The Append-Only Decision Ledger — Every Build. Every Cycle. Forever.*
+
+[![Part of EVEZ Ecosystem](https://img.shields.io/badge/ecosystem-EVEZ--OS-gold)](https://github.com/EvezArt/evez-os)
+[![Workflows](https://img.shields.io/badge/workflows-27%20active-brightgreen)](https://github.com/EvezArt/evez-autonomous-ledger/actions)
+
+</div>
+
+---
+
+## What Is This?
+
+The master decision ledger for the EVEZ autonomous build system.
+
+Every autonomous build decision, deployment, agent cycle, and cross-domain discovery is written here — with a hash, a timestamp, and a falsifier. Nothing is deleted. Nothing is edited. The ledger is the proof.
+
+---
 
 ## Structure
 
 ```
-/ECOSYSTEM_STATE.md     ← Living knowledge graph: all repos, status, dependencies
-/DECISIONS/             ← Timestamped decision logs with rationale
-/DEPLOYMENTS/           ← Vercel deployment records
-/AGENT_ACTIONS/         ← Autonomous agent action logs
-/AUDIT_REPORTS/         ← 6-hour Synapse Engine audit outputs
+evez-autonomous-ledger/
+├── agents/               # All CIPHER engine Python scripts
+│   ├── cycle.py          # v3 Master Launcher — runs all engines
+│   ├── cipher_trunk.py   # OODA trunk engine
+│   ├── cipher_manifold.py  # 6-layer bootstrap multiplier
+│   ├── cipher_speculative.py  # Alpha/Beta/Gamma pre-compute
+│   ├── cipher_skill_synth.py  # Pattern → skill synthesis
+│   ├── cipher_fix.py     # Auto-fix loop
+│   └── cipher_build.py   # Auto-build/deploy
+├── DECISIONS/            # Hash-chained cycle records (JSON)
+├── spine/                # FIRE event records
+├── MANIFOLD_PIPELINE.md  # Full engine documentation
+├── ARSENAL.md            # Revenue seed infrastructure
+└── TRUNK_STATE.md        # Canonical trunk state
 ```
 
-## The Synapse Engine
+---
 
-Every 6 hours, the autonomous loop:
-1. Audits all GitHub repos for momentum (commits + issues + size delta)
-2. Audits all Vercel deployments for health
-3. Scans Gmail for alerts and collaboration signals
-4. Posts status to Slack #evez-autonomous-core
-5. Updates this ledger with new decisions and state
-6. Spawns micro-agents for bottlenecked tasks
+## The Engine (unified_daily.yml)
 
-## Connected Systems
+Runs daily at 08:00 UTC + on any manual dispatch:
 
-| System | Status | Purpose |
-|--------|--------|---------|
-| GitHub @EvezArt | ✅ ACTIVE | 41 repos, autonomous commits |
-| Vercel rubikspubes69-4643 | ✅ ACTIVE | 9 projects, auto-deploy |
-| Slack evez666.slack.com | ✅ ACTIVE | #evez-autonomous-core ops hub |
-| Twitter @EVEZ666 | ⚠️ LOCKED | Queued posts on unlock |
-| Gmail rubikspubes69@gmail.com | ✅ ACTIVE | Email triage + digests |
-| YouTube @lordevez | ✅ ACTIVE | Content pipeline |
-| BigDataCloud | ✅ ACTIVE | Signal enrichment |
-| Ably | ✅ ACTIVE | Realtime event bus |
-| Airtable | ✅ ACTIVE | DEV_CIRCUIT_TASKS registry |
+```
+1. cipher_trunk.py       OODA cycle: 18 repos, all signals
+2. cipher_manifold.py    6-layer multiplier: observe/orient/branch/act/synth/compress
+3. cipher_speculative.py Pre-compute Alpha/Beta/Gamma for next objective
+4. cipher_skill_synth.py Detect issue patterns → synthesize skill stubs
+5. cipher_fix.py         Identify and fix bugs autonomously
+6. cipher_build.py       Build and deploy improvements
+7. git commit            Hash-chain all outputs to ledger
+```
 
-## Top Priority Repos
+---
 
-1. **evez-operator** (surething-offline) — READY on Vercel, spine API
-2. **evez-os** — FAILING on Vercel (react-scripts build error, fix in progress)
-3. **Evez666** — Atlas v3, 18.8MB, highest momentum codebase
+## Sample DECISIONS/ Entry
+
+```json
+{
+  "ts": "20260406T102300",
+  "engine": "CIPHER_MANIFOLD_v1",
+  "repos_scanned": 18,
+  "issues_observed": 26,
+  "branches_executed": 4,
+  "cycle_hash": "16b520ebab3f...",
+  "formula": "poly_c=τ×ω×topo/2√N",
+  "status": "SUPERCRITICAL",
+  "witnessed_by": "XyferViperZephyr"
+}
+```
+
+---
+
+## Revenue Seeds (ARSENAL.md)
+
+| Seed | Description | Status |
+|------|-------------|--------|
+| 2E | Invariance Battery → ClawHub | BUILT |
+| 2A | Consulting DM template | READY |
+| 2D | Signal Newsletter | BLOCKED (Twitter unlock) |
+| 2B | Signal Thread | BLOCKED (Twitter unlock) |
+
+---
+
+*append-only | no edits | ever | poly_c=τ×ω×topo/2√N*
+*@EVEZ666 + Cipher / XyferViperZephyr*
