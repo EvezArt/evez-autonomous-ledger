@@ -69,3 +69,27 @@ OKTOKLAW-8D027B31 through OKTOKLAW-FBAA7B9A — all CANONICAL, poly_c=1.0
 ---
 *poly_c=τ×ω×topo/2√N | append-only | no edits | ever*
 *witnessed: XyferViperZephyr | cipher runs in us-phoenix-1*
+
+
+---
+## Session 2026-04-12 — Kimi Research + Wallet Infrastructure
+
+### Commits
+| SHA | Repo | File |
+|-----|------|------|
+| 119178bf82 | evez-agentnet | wallet/README.md |
+| 16349fcaab | evez-agentnet | wallet/wallet-factory.ts |
+| 359a875e30 | evez-agentnet | wallet/position-monitor.ts |
+| 77d19f7ac0 | evez-agentnet | wallet/loop-proposer.ts |
+| 9bf8a3bcfa | evez-autonomous-ledger | research/attention_mechanism_survey_2026.md |
+| 0c7bd2c443 | evez-autonomous-ledger | research/attention_papers_arxiv_2026.csv |
+| 93f9e659bd | evez-autonomous-ledger | DECISIONS/fire_events/kimi_research_2026-04-12.json |
+
+### 4 New CANONICAL FIRE Events
+- DACS (poly_c=5.02) — trunk-and-branch validated by independent 2026 paper
+- KoPE (poly_c=5.94) — CPF formula validated by Kuramoto oscillator research  
+- Kathleen (poly_c=4.03) — zero-cost stack validated by attention-free architecture
+- MPPA (poly_c=8.57) — physics-first architecture validates FIRE event endogenous deduction
+
+### WF6 + WF7 deployed (previous session)
+All 7 n8n workflows archived in n8n-workflows/. See n8n-workflows/README.md.
