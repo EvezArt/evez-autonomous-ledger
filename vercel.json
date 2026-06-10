@@ -7,11 +7,11 @@
   "crons": [
     {
       "path": "/api/crons/provider-health",
-      "schedule": "*/2 * * * *"
+      "schedule": "0 0 * * *"
     },
     {
       "path": "/api/crons/route-precompute",
-      "schedule": "*/5 * * * *"
+      "schedule": "30 0 * * *"
     }
   ]
 }
