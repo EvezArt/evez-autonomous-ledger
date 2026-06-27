@@ -8,18 +8,19 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "next": "latest",
+    "@vercel/edge-config": "latest",
+    "@vercel/functions": "latest",
+    "ai": "^7.0.3",
+    "next": "^16.2.9",
+    "postcss": "^8.5.15",
     "react": "latest",
     "react-dom": "latest",
-    "ai": "latest",
-    "zod": "latest",
-    "@vercel/functions": "latest",
-    "@vercel/edge-config": "latest"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "typescript": "latest",
     "@types/node": "latest",
     "@types/react": "latest",
-    "@types/react-dom": "latest"
+    "@types/react-dom": "latest",
+    "typescript": "latest"
   }
 }
