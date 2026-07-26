@@ -1,0 +1,2 @@
+{"ts": "2026-07-26T09:39:56.385275+00:00", "type": "test", "data": {"source": "kai9000_validation"}, "sha256": "c55241ae6aaa9c68"}
+{"ts": "2026-07-26T09:44:34.390792+00:00", "type": "agi_init", "data": {"status": "ready", "initiator": "kai9000"}, "sha256": "29996872655e077b"}
