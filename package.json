@@ -10,7 +10,7 @@
   "dependencies": {
     "@vercel/edge-config": "latest",
     "@vercel/functions": "latest",
-    "ai": "^7.0.3",
+    "ai": "^7.0.47",
     "next": "^16.2.12",
     "postcss": "^8.5.15",
     "react": "latest",
