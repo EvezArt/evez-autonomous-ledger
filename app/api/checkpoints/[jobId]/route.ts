@@ -5,9 +5,9 @@ export const runtime = 'nodejs';
 
 export async function GET(
   _req: Request,
-  context: { params: { jobId: string } },
+  context: { params: Promise<{ jobId: string }> },
 ) {
-  const { jobId } = context.params;
+  const { jobId } = await context.params;
 
   const checkpoints: JobCheckpoint[] = [
     {
