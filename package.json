@@ -15,7 +15,7 @@
     "postcss": "^8.5.15",
     "react": "latest",
     "react-dom": "latest",
-    "zod": "^4.4.3"
+    "zod": "^4.5.2"
   },
   "devDependencies": {
     "@types/node": "latest",
