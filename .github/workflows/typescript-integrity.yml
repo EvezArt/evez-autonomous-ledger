@@ -21,22 +21,11 @@ jobs:
       - name: Install package metadata without lock enforcement
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Typecheck economic core
-        run: >
-          npx --yes tsc
-          --noEmit
-          --skipLibCheck
-          --target ES2022
-          --module ESNext
-          --moduleResolution bundler
-          --strict
-          lib/economic/types.ts
-          lib/economic/ledger.ts
-          lib/economic/drift-types.ts
-          lib/economic/drift-guard.ts
-          lib/economic/reality-receipt-types.ts
-          lib/economic/reality-receipt.ts
+        run: |
+          npx --yes tsc             --noEmit             --skipLibCheck             --target ES2022             --module ESNext             --moduleResolution bundler             --strict             lib/economic/types.ts             lib/economic/ledger.ts             lib/economic/drift-types.ts             lib/economic/drift-guard.ts             lib/economic/reality-receipt-types.ts             lib/economic/reality-receipt.ts
       - name: Validate JSON schemas
-        run: python - <<'PY'
+        run: |
+          python - <<'PY'
           import json
           from pathlib import Path
           for path in [
@@ -44,7 +33,7 @@ jobs:
               Path("schema/reality-drift-check.schema.json"),
               Path("schema/reality-gate-receipt.schema.json"),
           ]:
-              json.loads(path.read_text())
+              json.loads(path.read_text(encoding="utf-8"))
               print("VALID", path)
           PY
 
