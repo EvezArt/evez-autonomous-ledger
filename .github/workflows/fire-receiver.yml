@@ -24,7 +24,6 @@ jobs:
           echo '{"ts":"'$(date -u +%FT%TZ)'","event":"fire_cascade","source":"'${{ github.event.client_payload.source || 'manual' }}'"}' >> spine/fire_events.jsonl
           mkdir -p spine
       - name: Run CIPHER Cycle
-        continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -37,4 +36,4 @@ jobs:
           git config user.email "cipher@evez666.local"
           git add -A
           git diff --staged --quiet || git commit -m "fire-cascade: CIPHER cycle $(date -u +%FT%TZ)"
-          git push || true
+          git push
