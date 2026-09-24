@@ -5,7 +5,7 @@ on:
 
 jobs:
   consciousness:
-    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       issues: write
