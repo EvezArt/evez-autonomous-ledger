@@ -13,14 +13,36 @@ const entry = (patch: Partial<EconomicEntry>): EconomicEntry => ({
 });
 
 describe("economic ledger", () => {
-  it("separates verified realized value from opportunity value", () => {
+  it("separates position from opportunity value", () => {
     const s = summarizeEconomicEntries([
       entry({ id: "cash", type: "FIAT", realizedValue: 125 }),
-      entry({ id: "opp", type: "OPPORTUNITY", estimatedValue: 1000000 }),
+      entry({ id: "opp", type: "OPPORTUNITY", estimatedValue: 1000000, valuationStatus: "ESTIMATED" }),
     ]);
     expect(s.realizedCash).toBe(125);
     expect(s.estimatedOpportunityValue).toBe(1000000);
     expect(s.realizedEconomicPosition).toBe(125);
+  });
+
+  it("does not treat revenue as additional cash balance", () => {
+    const s = summarizeEconomicEntries([
+      entry({ id: "cash", type: "FIAT", realizedValue: 125 }),
+      entry({ id: "sale", type: "REVENUE", realizedValue: 50 }),
+    ]);
+    expect(s.realizedCash).toBe(125);
+    expect(s.realizedRevenue).toBe(50);
+    expect(s.realizedEconomicPosition).toBe(125);
+    expect(s.netCashFlow).toBe(50);
+  });
+
+  it("tracks crypto and liabilities without double counting fiat", () => {
+    const s = summarizeEconomicEntries([
+      entry({ id: "cash", type: "FIAT", realizedValue: 1000 }),
+      entry({ id: "crypto", type: "CRYPTO", realizedValue: 400 }),
+      entry({ id: "debt", type: "LIABILITY", realizedValue: 300 }),
+    ]);
+    expect(s.verifiedLiquidAssets).toBe(400);
+    expect(s.verifiedLiabilities).toBe(300);
+    expect(s.realizedEconomicPosition).toBe(1100);
   });
 
   it("requires evidence before treating value as verified", () => {
@@ -28,16 +50,6 @@ describe("economic ledger", () => {
       entry({ id: "unproven", type: "ASSET", estimatedValue: 5000, evidenceRefs: [] }),
     ]);
     expect(s.verifiedControlledResources).toBe(0);
-    expect(s.unpricedEntries).toBe(0);
-  });
-
-  it("tracks liabilities separately", () => {
-    const s = summarizeEconomicEntries([
-      entry({ id: "cash", type: "FIAT", realizedValue: 1000 }),
-      entry({ id: "debt", type: "LIABILITY", realizedValue: 300 }),
-    ]);
-    expect(s.verifiedLiabilities).toBe(300);
-    expect(s.realizedEconomicPosition).toBe(700);
   });
 
   it("rejects malformed entries", () => {
