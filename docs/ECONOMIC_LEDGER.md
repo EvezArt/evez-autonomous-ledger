@@ -41,3 +41,17 @@ with spreadsheets, so the code will at least behave itself.
 
 No market valuation is inferred by this module. Every valuation needs its supplied
 method and evidence.
+
+## API
+
+The ledger exposes a mobile-friendly calculation endpoint:
+
+    POST /api/economic/summary
+
+Body:
+
+    { "entries": [ ...EconomicEntry ] }
+
+The endpoint validates every entry before calculating the summary. It does not invent
+prices, connect to banks, custody crypto, or treat opportunities as realized money.
+Persistence and external financial connectors remain separate integration layers.
