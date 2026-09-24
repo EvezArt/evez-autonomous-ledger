@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/EvezArt/evez-autonomous-ledger/schema/economic-entry.schema.json",
+  "title": "EVEZ Economic Entry",
+  "type": "object",
+  "required": ["id", "type", "owner", "description", "evidenceRefs"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "type": {"enum": ["ASSET","RESOURCE","IP","REVENUE","RECEIVABLE","CRYPTO","FIAT","EXPENSE","LIABILITY","OPPORTUNITY","UNKNOWN"]},
+    "owner": {"type": "string", "minLength": 1},
+    "description": {"type": "string", "minLength": 1},
+    "quantity": {"type": "number"},
+    "unit": {"type": "string"},
+    "currency": {"type": "string"},
+    "costBasis": {"type": "number"},
+    "realizedValue": {"type": "number"},
+    "estimatedValue": {"type": "number"},
+    "valuationStatus": {"enum": ["VERIFIED","SUPPORTED","ESTIMATED","UNKNOWN"]},
+    "valuationMethod": {"type": "string"},
+    "evidenceRefs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "acquisitionEvent": {"type": "string"},
+    "liabilityRefs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "lastVerified": {"type": "string"},
+    "source": {"type": "string"}
+  },
+  "additionalProperties": false
+}

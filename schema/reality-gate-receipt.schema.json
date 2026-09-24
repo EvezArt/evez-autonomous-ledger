@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/EvezArt/evez-autonomous-ledger/schema/reality-gate-receipt.schema.json",
+  "title": "EVEZ Reality Gate Receipt",
+  "type": "object",
+  "required": ["envelopeHash","actor","target","requestedEffect","authority","evidenceRefs","policyVersion","decision","drift","executionStatus","spineSequence"],
+  "properties": {
+    "envelopeHash":{"type":"string","minLength":1},"actor":{"type":"string","minLength":1},
+    "target":{"type":"string","minLength":1},"requestedEffect":{"type":"string","minLength":1},
+    "authority":{"type":"string","minLength":1},"evidenceRefs":{"type":"array","items":{"type":"string"}},
+    "policyVersion":{"type":"string","minLength":1},"decision":{"enum":["ALLOW","BLOCK","CONTAIN","WITNESS_REQUIRED"]},
+    "drift":{"type":"number"},"executionStatus":{"enum":["NOT_EXECUTED","COMPLETED","FAILED"]},
+    "spineSequence":{"type":"integer","minimum":0},"requestedValue":{"type":"number","minimum":0},
+    "currency":{"type":"string"},
+    "economicType":{"enum":["ASSET","RESOURCE","IP","REVENUE","RECEIVABLE","CRYPTO","FIAT","EXPENSE","LIABILITY","OPPORTUNITY","UNKNOWN"]},
+    "declaredEffect":{"type":"string"},"effectiveEffect":{"type":"string"}
+  },
+  "additionalProperties": false
+}
