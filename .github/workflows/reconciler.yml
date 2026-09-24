@@ -5,7 +5,7 @@ on:
 
 jobs:
   reconcile:
-    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       issues: read
