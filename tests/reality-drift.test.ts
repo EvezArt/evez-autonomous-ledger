@@ -8,18 +8,6 @@ const base: DriftCheckInput = {
   evidenceRefs: ["receipt-1"], eventRefs: ["event-1"], reproducible: true,
 };
 
-const clean = checkRealityDrift(base);
-assert.equal(clean.status, "CLEAN");
-
-const unsupported = checkRealityDrift({
-  ...base, claimClass: "VERIFIED_FACT", evidenceRefs: [], eventRefs: [],
-});
-assert.equal(unsupported.status, "EVIDENCE_REQUIRED");
-
-const narrative = checkRealityDrift({
-  ...base, claimClass: "NARRATIVE", narrativeLanguage: true,
-  externalEffectRequested: true,
-});
-assert.equal(narrative.externalEffectAllowed, false);
-
-console.log("reality drift guard checks passed");
+assert.equal(checkRealityDrift(base).status, "CLEAN");
+assert.equal(checkRealityDrift({...base, claimClass:"VERIFIED_FACT", evidenceRefs:[], eventRefs:[]}).status, "EVIDENCE_REQUIRED");
+assert.equal(checkRealityDrift({...base, claimClass:"NARRATIVE", narrativeLanguage:true, externalEffectRequested:true}).externalEffectAllowed, false);
