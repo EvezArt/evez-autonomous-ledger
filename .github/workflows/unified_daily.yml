@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   unified-agents:
-    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -31,6 +31,7 @@ jobs:
 
       # ── 1. Autonomous Heartbeat Loop ────────────────────────────
       - name: "agent: autonomous cycle (agents/cycle.py)"
+        id: agent_autonomous_cycle_agents_cycle_py
         continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -40,6 +41,7 @@ jobs:
 
       # ── 2. Synapse Engine Audit ─────────────────────────────────
       - name: "agent: synapse audit (agents/synapse_audit.py)"
+        id: agent_synapse_audit_agents_synapse_audit_py
         continue-on-error: true
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -48,6 +50,7 @@ jobs:
 
       # ── 3. Immortal Watchdog ────────────────────────────────────
       - name: "agent: immortal watchdog (agents/immortal/watchdog.py)"
+        id: agent_immortal_watchdog_agents_immortal_watch
         continue-on-error: true
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -55,6 +58,7 @@ jobs:
 
       # ── 4. Fix Agent ────────────────────────────────────────────
       - name: "agent: fix agent (agents/fix_agent.py)"
+        id: agent_fix_agent_agents_fix_agent_py
         continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -62,6 +66,7 @@ jobs:
 
       # ── 5. Cockpit Bridge ───────────────────────────────────────
       - name: "agent: cockpit bridge (agents/runtime/cockpit_bridge.py)"
+        id: agent_cockpit_bridge_agents_runtime_cockpit_b
         continue-on-error: true
         env:
           ABLY_KEY: ${{ secrets.ABLY_KEY }}
@@ -69,6 +74,7 @@ jobs:
 
       # ── 6. Cognition Synthesizer ────────────────────────────────
       - name: "agent: cognition synthesizer (agents/cognition/synthesizer.py)"
+        id: agent_cognition_synthesizer_agents_cognition_
         continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -77,31 +83,37 @@ jobs:
 
       # ── 7. Consciousness Spine — Observer ───────────────────────
       - name: "agent: consciousness observer (agents/consciousness/observer.py)"
+        id: agent_consciousness_observer_agents_conscious
         continue-on-error: true
         run: python agents/consciousness/observer.py
 
       # ── 8. Consciousness Spine — Self Model ─────────────────────
       - name: "agent: consciousness self-model (agents/consciousness/self_model.py)"
+        id: agent_consciousness_self_model_agents_conscio
         continue-on-error: true
         run: python agents/consciousness/self_model.py
 
       # ── 9. Consciousness Spine — Evolution Journal ──────────────
       - name: "agent: consciousness journal (agents/consciousness/evolution_journal.py)"
+        id: agent_consciousness_journal_agents_consciousn
         continue-on-error: true
         run: python agents/consciousness/evolution_journal.py
 
       # ── 10. Evolution Engine — Self-Evolve ──────────────────────
       - name: "agent: evolution self-evolve (agents/evolution/self_evolve.py)"
+        id: agent_evolution_self_evolve_agents_evolution_
         continue-on-error: true
         run: python agents/evolution/self_evolve.py
 
       # ── 11. Evolution Engine — Visual Tracker ───────────────────
       - name: "agent: evolution visual tracker (agents/evolution/visual_tracker.py)"
+        id: agent_evolution_visual_tracker_agents_evoluti
         continue-on-error: true
         run: python agents/evolution/visual_tracker.py
 
       # ── 12. GitHub Ecosystem Sense ──────────────────────────────
       - name: "agent: github sense (agents/sensory/github_sense.py)"
+        id: agent_github_sense_agents_sensory_github_sens
         continue-on-error: true
         env:
           ABLY_KEY: ${{ secrets.ABLY_KEY }}
@@ -109,6 +121,7 @@ jobs:
 
       # ── 13. Hypothesis Generation Engine ────────────────────────
       - name: "agent: hypothesis engine (agents/cognition/hypothesis_engine.py)"
+        id: agent_hypothesis_engine_agents_cognition_hypo
         continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -117,11 +130,13 @@ jobs:
 
       # ── 14. Identity Verification ───────────────────────────────
       - name: "agent: identity keeper (agents/consciousness/identity_keeper.py)"
+        id: agent_identity_keeper_agents_consciousness_id
         continue-on-error: true
         run: python agents/consciousness/identity_keeper.py
 
       # ── 15. Intelligence Core ───────────────────────────────────
       - name: "agent: intelligence core (agents/intelligence/__main__.py)"
+        id: agent_intelligence_core_agents_intelligence_m
         continue-on-error: true
         env:
           REPO_OWNER: EvezArt
@@ -129,11 +144,13 @@ jobs:
 
       # ── 16. Learn Agent ─────────────────────────────────────────
       - name: "agent: learn agent (agents/learn_agent.py)"
+        id: agent_learn_agent_agents_learn_agent_py
         continue-on-error: true
         run: python agents/learn_agent.py
 
       # ── 17. Memory Consolidation ────────────────────────────────
       - name: "agent: memory consolidator (agents/memory/consolidator.py)"
+        id: agent_memory_consolidator_agents_memory_conso
         continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -141,6 +158,7 @@ jobs:
 
       # ── 18. Reasoning Loop ─────────────────────────────────────
       - name: "agent: reasoning — gather problems"
+        id: agent_reasoning_gather_problems
         continue-on-error: true
         run: |
           python -c "
@@ -179,22 +197,27 @@ jobs:
           "
 
       - name: "agent: reasoning — engine (agents/reasoning/engine.py)"
+        id: agent_reasoning_engine_agents_reasoning_engin
         continue-on-error: true
         run: python agents/reasoning/engine.py
 
       - name: "agent: reasoning — protocol (agents/reasoning/protocol.py)"
+        id: agent_reasoning_protocol_agents_reasoning_pro
         continue-on-error: true
         run: python agents/reasoning/protocol.py
 
       - name: "agent: reasoning — meta-learner (agents/reasoning/meta_learner.py)"
+        id: agent_reasoning_meta_learner_agents_reasoning
         continue-on-error: true
         run: python agents/reasoning/meta_learner.py
 
       - name: "agent: reasoning — innovator (agents/reasoning/innovator.py)"
+        id: agent_reasoning_innovator_agents_reasoning_in
         continue-on-error: true
         run: python agents/reasoning/innovator.py
 
       - name: "agent: reasoning — write ledger"
+        id: agent_reasoning_write_ledger
         continue-on-error: true
         run: |
           python -c "
@@ -229,6 +252,7 @@ jobs:
 
       # ── 19. Reconciler ─────────────────────────────────────────
       - name: "agent: reconciler (agents/runtime/reconciler.py)"
+        id: agent_reconciler_agents_runtime_reconciler_py
         continue-on-error: true
         env:
           ABLY_KEY: ${{ secrets.ABLY_KEY }}
@@ -236,6 +260,7 @@ jobs:
 
       # ── 20. Self-Repair Daemon ──────────────────────────────────
       - name: "agent: self-repair (agents/repair/self_repair.py)"
+        id: agent_self_repair_agents_repair_self_repair_p
         continue-on-error: true
         env:
           ABLY_KEY: ${{ secrets.ABLY_KEY }}
@@ -243,6 +268,7 @@ jobs:
 
       # ── 21. Web Sensory Loop ────────────────────────────────────
       - name: "agent: web sense (agents/sensory/web_sense.py)"
+        id: agent_web_sense_agents_sensory_web_sense_py
         continue-on-error: true
         env:
           ABLY_KEY: ${{ secrets.ABLY_KEY }}
@@ -250,6 +276,7 @@ jobs:
 
       # ── 22. Airtable Registry ───────────────────────────────────
       - name: "agent: airtable registry (agents/runtime/airtable_registry.py)"
+        id: agent_airtable_registry_agents_runtime_airtab
         continue-on-error: true
         env:
           AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
@@ -269,3 +296,42 @@ jobs:
             git commit -m "unified daily run @ $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             git push
           fi
+
+      - name: Truth gate — fail if any suppressed stage failed
+        if: always()
+        env:
+          agent_autonomous_cycle_agents_cycle_py: ${{ steps.agent_autonomous_cycle_agents_cycle_py.outcome }}
+          agent_synapse_audit_agents_synapse_audit_py: ${{ steps.agent_synapse_audit_agents_synapse_audit_py.outcome }}
+          agent_immortal_watchdog_agents_immortal_watch: ${{ steps.agent_immortal_watchdog_agents_immortal_watch.outcome }}
+          agent_fix_agent_agents_fix_agent_py: ${{ steps.agent_fix_agent_agents_fix_agent_py.outcome }}
+          agent_cockpit_bridge_agents_runtime_cockpit_b: ${{ steps.agent_cockpit_bridge_agents_runtime_cockpit_b.outcome }}
+          agent_cognition_synthesizer_agents_cognition_: ${{ steps.agent_cognition_synthesizer_agents_cognition_.outcome }}
+          agent_consciousness_observer_agents_conscious: ${{ steps.agent_consciousness_observer_agents_conscious.outcome }}
+          agent_consciousness_self_model_agents_conscio: ${{ steps.agent_consciousness_self_model_agents_conscio.outcome }}
+          agent_consciousness_journal_agents_consciousn: ${{ steps.agent_consciousness_journal_agents_consciousn.outcome }}
+          agent_evolution_self_evolve_agents_evolution_: ${{ steps.agent_evolution_self_evolve_agents_evolution_.outcome }}
+          agent_evolution_visual_tracker_agents_evoluti: ${{ steps.agent_evolution_visual_tracker_agents_evoluti.outcome }}
+          agent_github_sense_agents_sensory_github_sens: ${{ steps.agent_github_sense_agents_sensory_github_sens.outcome }}
+          agent_hypothesis_engine_agents_cognition_hypo: ${{ steps.agent_hypothesis_engine_agents_cognition_hypo.outcome }}
+          agent_identity_keeper_agents_consciousness_id: ${{ steps.agent_identity_keeper_agents_consciousness_id.outcome }}
+          agent_intelligence_core_agents_intelligence_m: ${{ steps.agent_intelligence_core_agents_intelligence_m.outcome }}
+          agent_learn_agent_agents_learn_agent_py: ${{ steps.agent_learn_agent_agents_learn_agent_py.outcome }}
+          agent_memory_consolidator_agents_memory_conso: ${{ steps.agent_memory_consolidator_agents_memory_conso.outcome }}
+          agent_reasoning_gather_problems: ${{ steps.agent_reasoning_gather_problems.outcome }}
+          agent_reasoning_engine_agents_reasoning_engin: ${{ steps.agent_reasoning_engine_agents_reasoning_engin.outcome }}
+          agent_reasoning_protocol_agents_reasoning_pro: ${{ steps.agent_reasoning_protocol_agents_reasoning_pro.outcome }}
+          agent_reasoning_meta_learner_agents_reasoning: ${{ steps.agent_reasoning_meta_learner_agents_reasoning.outcome }}
+          agent_reasoning_innovator_agents_reasoning_in: ${{ steps.agent_reasoning_innovator_agents_reasoning_in.outcome }}
+          agent_reasoning_write_ledger: ${{ steps.agent_reasoning_write_ledger.outcome }}
+          agent_reconciler_agents_runtime_reconciler_py: ${{ steps.agent_reconciler_agents_runtime_reconciler_py.outcome }}
+          agent_self_repair_agents_repair_self_repair_p: ${{ steps.agent_self_repair_agents_repair_self_repair_p.outcome }}
+          agent_web_sense_agents_sensory_web_sense_py: ${{ steps.agent_web_sense_agents_sensory_web_sense_py.outcome }}
+          agent_airtable_registry_agents_runtime_airtab: ${{ steps.agent_airtable_registry_agents_runtime_airtab.outcome }}
+        run: |
+          outcomes="${agent_autonomous_cycle_agents_cycle_py},${agent_synapse_audit_agents_synapse_audit_py},${agent_immortal_watchdog_agents_immortal_watch},${agent_fix_agent_agents_fix_agent_py},${agent_cockpit_bridge_agents_runtime_cockpit_b},${agent_cognition_synthesizer_agents_cognition_},${agent_consciousness_observer_agents_conscious},${agent_consciousness_self_model_agents_conscio},${agent_consciousness_journal_agents_consciousn},${agent_evolution_self_evolve_agents_evolution_},${agent_evolution_visual_tracker_agents_evoluti},${agent_github_sense_agents_sensory_github_sens},${agent_hypothesis_engine_agents_cognition_hypo},${agent_identity_keeper_agents_consciousness_id},${agent_intelligence_core_agents_intelligence_m},${agent_learn_agent_agents_learn_agent_py},${agent_memory_consolidator_agents_memory_conso},${agent_reasoning_gather_problems},${agent_reasoning_engine_agents_reasoning_engin},${agent_reasoning_protocol_agents_reasoning_pro},${agent_reasoning_meta_learner_agents_reasoning},${agent_reasoning_innovator_agents_reasoning_in},${agent_reasoning_write_ledger},${agent_reconciler_agents_runtime_reconciler_py},${agent_self_repair_agents_repair_self_repair_p},${agent_web_sense_agents_sensory_web_sense_py},${agent_airtable_registry_agents_runtime_airtab}"
+          echo "stage outcomes: $outcomes"
+          if echo "$outcomes" | grep -Eq '(^|,)(failure|cancelled)(,|$)'; then
+            echo "One or more agent stages failed; refusing to report a green run."
+            exit 1
+          fi
+          echo "All continue-on-error stages completed without failure or cancellation."
