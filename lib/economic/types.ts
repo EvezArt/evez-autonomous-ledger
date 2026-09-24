@@ -35,6 +35,9 @@ export interface EconomicEntry {
 
 export interface EconomicSummary {
   realizedCash: number;
+  realizedRevenue: number;
+  realizedExpenses: number;
+  netCashFlow: number;
   verifiedReceivables: number;
   verifiedLiquidAssets: number;
   verifiedControlledResources: number;
