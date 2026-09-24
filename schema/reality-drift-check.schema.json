@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/EvezArt/evez-autonomous-ledger/schema/reality-drift-check.schema.json",
+  "title": "EVEZ Reality Drift Check",
+  "type": "object",
+  "required": ["actor","projectIdentity","subject","statement","claimClass","evidenceRefs","eventRefs","reproducible"],
+  "properties": {
+    "actor": {"type":"string","minLength":1},
+    "projectIdentity": {"type":"string","minLength":1},
+    "subject": {"type":"string","minLength":1},
+    "statement": {"type":"string","minLength":1},
+    "claimClass": {"enum":["OBSERVATION","VERIFIED_FACT","SUPPORTED_INFERENCE","HYPOTHESIS","FICTION","NARRATIVE","UNKNOWN"]},
+    "evidenceRefs": {"type":"array","items":{"type":"string"}},
+    "eventRefs": {"type":"array","items":{"type":"string"}},
+    "reproducible": {"type":"boolean"},
+    "externalEffectRequested": {"type":"boolean"},
+    "narrativeLanguage": {"type":"boolean"}
+  },
+  "additionalProperties": false
+}
