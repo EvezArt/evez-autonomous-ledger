@@ -1,35 +1,43 @@
 # EVEZ Economic Ledger
 
-This layer tracks assets, resources, IP, money received, receivables, crypto,
-expenses, liabilities, and opportunities without conflating potential value with
-realized value.
+This layer tracks assets, resources, IP, revenue, receivables, crypto, fiat,
+expenses, liabilities, and opportunities without conflating financial flows with
+a balance-sheet-style position.
 
 Core invariant:
 
     CLAIMED VALUE != REALIZED VALUE
 
-A value contributes to the verified economic position only when it has supporting
-evidence references and a verified/supported valuation status.
+A value enters the verified economic position only when it has evidence references
+and a VERIFIED/SUPPORTED valuation status.
 
-Categories:
+The accounting model deliberately separates:
 
-- FIAT: actual currency balance or received funds.
-- REVENUE: money actually received.
-- RECEIVABLE: contractually owed money not yet received.
-- CRYPTO: actual crypto holdings when verified by evidence.
-- ASSET/RESOURCE/IP: controlled value with provenance.
-- LIABILITY/EXPENSE: obligations or money actually spent.
-- OPPORTUNITY: potential future value, never included in realized position.
-- UNKNOWN: insufficient evidence or classification.
+- `FIAT`: verified currency balance.
+- `CRYPTO`: verified liquid crypto value.
+- `REVENUE`: money actually received, tracked as a flow.
+- `EXPENSE`: money actually spent, tracked as a flow.
+- `RECEIVABLE`: money owed but not yet received.
+- `ASSET/RESOURCE/IP`: controlled value with evidence.
+- `LIABILITY`: outstanding obligation.
+- `OPPORTUNITY`: possible future value, never included in realized position.
 
-The summary computes:
+Summary:
 
-    realized cash
-  + verified receivables
-  + verified liquid assets
+    realized revenue - realized expenses
+        = net cash flow
+
+    fiat
+  + crypto
+  + receivables
   + verified controlled resources
-  - verified liabilities
-  = realized economic position
+  - liabilities
+        = realized economic position
 
-This is an accounting/provenance model, not a claim that an entry has any market
-value beyond its supplied evidence and valuation method.
+Revenue is not added to the cash balance because doing so would count the same
+money twice when the cash balance already contains the proceeds. Humanity has
+invented double-entry accounting and then spent centuries trying to defeat it
+with spreadsheets, so the code will at least behave itself.
+
+No market valuation is inferred by this module. Every valuation needs its supplied
+method and evidence.
