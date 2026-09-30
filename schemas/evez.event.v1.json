@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/EvezArt/evez-autonomous-ledger/blob/main/schemas/evez.event.v1.json",
+  "title": "EVEZ Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event_id", "event_type", "schema_version", "ts", "source", "subject", "trace", "payload", "policy", "integrity"],
+  "properties": {
+    "event_id": {"type": "string", "minLength": 1},
+    "event_type": {"type": "string", "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)+$"},
+    "schema_version": {"const": "evez.event.v1"},
+    "ts": {"type": "string", "format": "date-time"},
+    "source": {"$ref": "#/$defs/source"},
+    "subject": {"$ref": "#/$defs/subject"},
+    "trace": {"$ref": "#/$defs/trace"},
+    "payload": {"type": "object"},
+    "policy": {"$ref": "#/$defs/policy"},
+    "integrity": {"$ref": "#/$defs/integrity"}
+  },
+  "$defs": {
+    "source": {"type": "object", "additionalProperties": false, "required": ["repo", "service"], "properties": {"repo": {"type": "string", "minLength": 1}, "service": {"type": "string", "minLength": 1}, "agent": {"type": "string"}}},
+    "subject": {"type": "object", "additionalProperties": false, "required": ["kind", "id"], "properties": {"kind": {"type": "string", "minLength": 1}, "id": {"type": "string", "minLength": 1}}},
+    "trace": {"type": "object", "additionalProperties": false, "required": ["run_id", "correlation_id"], "properties": {"run_id": {"type": "string", "minLength": 1}, "parent_event_id": {"type": "string"}, "correlation_id": {"type": "string", "minLength": 1}}},
+    "policy": {"type": "object", "additionalProperties": false, "required": ["required_capabilities", "risk", "human_approval"], "properties": {"required_capabilities": {"type": "array", "items": {"type": "string"}}, "risk": {"enum": ["low", "medium", "high", "critical"]}, "human_approval": {"type": "boolean"}}},
+    "integrity": {"type": "object", "additionalProperties": false, "required": ["prev_hash", "event_hash"], "properties": {"prev_hash": {"type": ["string", "null"]}, "event_hash": {"type": ["string", "null"]}}}
+  }
+}
