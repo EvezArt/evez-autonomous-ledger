@@ -29,6 +29,9 @@ jobs:
       - name: Install all dependencies
         run: pip install requests anthropic python-dateutil feedparser
 
+      - name: Test truth-gate helper
+        run: bash .github/scripts/test-verify-stage-outcomes.sh
+
       # ── 1. Autonomous Heartbeat Loop ────────────────────────────
       - name: "agent: autonomous cycle (agents/cycle.py)"
         id: agent_autonomous_cycle_agents_cycle_py
@@ -330,8 +333,5 @@ jobs:
         run: |
           outcomes="${agent_autonomous_cycle_agents_cycle_py},${agent_synapse_audit_agents_synapse_audit_py},${agent_immortal_watchdog_agents_immortal_watch},${agent_fix_agent_agents_fix_agent_py},${agent_cockpit_bridge_agents_runtime_cockpit_b},${agent_cognition_synthesizer_agents_cognition_},${agent_consciousness_observer_agents_conscious},${agent_consciousness_self_model_agents_conscio},${agent_consciousness_journal_agents_consciousn},${agent_evolution_self_evolve_agents_evolution_},${agent_evolution_visual_tracker_agents_evoluti},${agent_github_sense_agents_sensory_github_sens},${agent_hypothesis_engine_agents_cognition_hypo},${agent_identity_keeper_agents_consciousness_id},${agent_intelligence_core_agents_intelligence_m},${agent_learn_agent_agents_learn_agent_py},${agent_memory_consolidator_agents_memory_conso},${agent_reasoning_gather_problems},${agent_reasoning_engine_agents_reasoning_engin},${agent_reasoning_protocol_agents_reasoning_pro},${agent_reasoning_meta_learner_agents_reasoning},${agent_reasoning_innovator_agents_reasoning_in},${agent_reasoning_write_ledger},${agent_reconciler_agents_runtime_reconciler_py},${agent_self_repair_agents_repair_self_repair_p},${agent_web_sense_agents_sensory_web_sense_py},${agent_airtable_registry_agents_runtime_airtab}"
           echo "stage outcomes: $outcomes"
-          if echo "$outcomes" | grep -Eq '(^|,)(failure|cancelled)(,|$)'; then
-            echo "One or more agent stages failed; refusing to report a green run."
-            exit 1
-          fi
-          echo "All continue-on-error stages completed without failure or cancellation."
+          bash .github/scripts/verify-stage-outcomes.sh "$outcomes" 27
+          echo "All 27 stages explicitly reported success."
