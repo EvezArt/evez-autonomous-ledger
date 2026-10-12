@@ -1,0 +1,68 @@
+name: truth-gate-helper
+
+on:
+  pull_request:
+    paths:
+      - ".github/scripts/verify-stage-outcomes.sh"
+      - ".github/scripts/test-verify-stage-outcomes.sh"
+      - ".github/workflows/unified_daily.yml"
+      - ".github/workflows/truth-gate-helper.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/scripts/verify-stage-outcomes.sh"
+      - ".github/scripts/test-verify-stage-outcomes.sh"
+      - ".github/workflows/unified_daily.yml"
+      - ".github/workflows/truth-gate-helper.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  truth-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check shell syntax
+        run: |
+          bash -n .github/scripts/verify-stage-outcomes.sh
+          bash -n .github/scripts/test-verify-stage-outcomes.sh
+      - name: Run adversarial outcome tests
+        run: bash .github/scripts/test-verify-stage-outcomes.sh
+      - name: Verify outcome mapping matches stage inventory
+        run: |
+          python - <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          path = Path(".github/workflows/unified_daily.yml")
+          source = path.read_text(encoding="utf-8")
+          step_ids = re.findall(r"^\s+id:\s*([A-Za-z0-9_-]+)\s*$", source, re.MULTILINE)
+          outcome_refs = re.findall(
+              r"\$\{\{\s*steps\.([^.]+)\.outcome\s*\}\}", source
+          )
+          expected = 27
+
+          if len(step_ids) != expected:
+              print(f"FAIL: expected {expected} stage IDs, observed {len(step_ids)}", file=sys.stderr)
+              sys.exit(1)
+          if len(set(step_ids)) != len(step_ids):
+              print("FAIL: duplicate stage IDs", file=sys.stderr)
+              sys.exit(1)
+          if len(outcome_refs) != expected:
+              print(f"FAIL: expected {expected} outcome refs, observed {len(outcome_refs)}", file=sys.stderr)
+              sys.exit(1)
+          if len(set(outcome_refs)) != len(outcome_refs):
+              print("FAIL: duplicate outcome refs", file=sys.stderr)
+              sys.exit(1)
+          if set(step_ids) != set(outcome_refs):
+              missing = sorted(set(step_ids) - set(outcome_refs))
+              unknown = sorted(set(outcome_refs) - set(step_ids))
+              print(f"FAIL: outcome mapping mismatch; missing={missing}, unknown={unknown}", file=sys.stderr)
+              sys.exit(1)
+
+          print(f"PASS: {expected} unique stages each have exactly one outcome reference")
+          PY
